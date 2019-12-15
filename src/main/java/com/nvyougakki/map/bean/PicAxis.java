@@ -5,7 +5,7 @@ package com.nvyougakki.map.bean;
  * @Description TODO
  * @Author 女友Gakki
  * @Date 2019/12/13 21:06
- * 图块坐标对象
+ * 图块坐标
  */
 public class PicAxis {
 
@@ -14,6 +14,15 @@ public class PicAxis {
     private int y;
 
     private int z;
+
+    public PicAxis() {
+    }
+
+    public PicAxis(int x, int y, int z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
 
     public int getX() {
         return x;

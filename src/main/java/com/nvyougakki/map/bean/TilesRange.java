@@ -33,11 +33,11 @@ public class TilesRange {
     }
 
     private void resetX(){
-        currX = currRange.getMinX();
+        currX = currRange.getMinPicAxis().getX();
     }
 
     private void resetY(){
-        currY = currRange.getMinY();
+        currY = currRange.getMinPicAxis().getY();
     }
 
     private void resetZ() {
@@ -47,10 +47,10 @@ public class TilesRange {
     public synchronized PicAxis getPicAxis(){
         PicAxis result = new PicAxis();
         //判断y是否越界，越界则x+1
-        if(currY > currRange.getMaxY()) {
+        if(currY > currRange.getMaxPicAxis().getY()) {
             currX++;
             //判断x是否越界，x越界则z+1
-            if(currX > currRange.getMaxX()) {
+            if(currX > currRange.getMaxPicAxis().getX()) {
                 zoomRangeIndex++;
                 if(zoomRangeIndex >= zoomRangeList.size()) return null;
                 else {

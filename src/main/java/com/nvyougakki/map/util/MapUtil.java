@@ -20,13 +20,19 @@ import java.util.stream.IntStream;
  */
 public class MapUtil {
 
+    //百度地图图层url
     public final static String URL_PREFIX = "http://maponline0.bdimg.com/tile/?qt=vtile&styles=pl&scaler=1";
 
+    //今天日期
     public final static String TODAY = new SimpleDateFormat("YYYYMMdd").format(new Date());
 
+    //下载目录
     private final static String LOCAL_PATH = "F:/tiles/";
+
+    //文件后缀
     private final static String PIC_SUFFIX= ".png";
 
+    //墨卡托坐标转图块坐标
     public static PicAxis mercatorToPicAxis(Point point, int z) {
         return mercatorToPicAxis(point.getX(), point.getY(), z);
     }
@@ -41,15 +47,23 @@ public class MapUtil {
         return result;
     }
 
+    //获取当前图层图片总量
     public static int getPicNum(PicAxis minPic, PicAxis maxPic){
         return (maxPic.getX() - minPic.getX() + 1) * (maxPic.getY() - minPic.getY() + 1);
     }
 
-
+    //下载图片
     public static void downloadPicToLocal(PicAxis picAxis, String localPath){
         downloadPicToLocal(picAxis.getX(), picAxis.getY(), picAxis.getZ(), localPath, 0);
     }
 
+    /**
+     * @Author 女友Gakki
+     * 下载图片
+     * @Date 1:33 2019/12/14
+     * @Param [x, y, z, localPath, stackDeep]
+     * @return void
+     **/
     public static void downloadPicToLocal(int x, int y, int z, String localPath, int stackDeep){
         if(stackDeep > 10) return;
         URL url = null;
@@ -103,13 +117,9 @@ public class MapUtil {
     }
 
     public static ZoomRange getZoomRange(Point minPoint, Point maxPoint, int zoom){
-        ZoomRange result = new ZoomRange();
         PicAxis min = mercatorToPicAxis(minPoint, zoom);
         PicAxis max = mercatorToPicAxis(maxPoint, zoom);
-        result.setMinX(min.getX());
-        result.setMaxX(max.getX());
-        result.setMinY(min.getY());
-        result.setMaxY(max.getY());
+        ZoomRange result = new ZoomRange(min, max, zoom);
         result.setZ(zoom);
         return result;
     }
@@ -117,15 +127,19 @@ public class MapUtil {
 
     public static void main(String[] args) {
 
+        //墨卡托坐标--直接从百度地图api获取
         Point minPoint = new Point(13207995.69, 3420821.13);
         Point maxPoint = new Point(13397179.77, 3514005.1);
 
+        //需要抓取的图层
+        List<Integer> zoomList = Arrays.asList(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17);
 
-        List<Integer> zoomList = Arrays.asList(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
         Tiles tiles = new Tiles(minPoint, maxPoint, zoomList);
 
+        //获取个图层图块数量
         Map<Integer, Integer> zoomCount = tiles.countZoom();
 
+        //
         List<ZoomRange> zoomRange = tiles.getZoomRange();
 
         TilesRange tilesMsg = new TilesRange(zoomRange);
@@ -133,13 +147,12 @@ public class MapUtil {
         AtomicInteger total = new AtomicInteger();
 
         long start = System.currentTimeMillis();
-        IntStream.rangeClosed(0,30).forEach(i -> {
+        IntStream.rangeClosed(0,20).forEach(i -> {
             Thread thread = new Thread(() -> {
 
-                PicAxis picAxis = tilesMsg.getPicAxis();
-                while (picAxis != null) {
+                PicAxis picAxis;
+                while ((picAxis = tilesMsg.getPicAxis()) != null) {
                     downloadPicToLocal(picAxis, LOCAL_PATH);
-                    picAxis = tilesMsg.getPicAxis();
                     total.incrementAndGet();
                 }
 

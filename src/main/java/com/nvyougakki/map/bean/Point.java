@@ -5,7 +5,7 @@ package com.nvyougakki.map.bean;
  * @Description TODO
  * @Author 女友Gakki
  * @Date 2019/12/13 21:17
- * 点坐标对象
+ * 点坐标
  */
 public class Point
 {

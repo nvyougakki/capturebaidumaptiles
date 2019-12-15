@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
  * @Description TODO
  * @Author 女友Gakki
  * @Date 2019/12/13 22:51
+ * 要抓取得图层信息
  */
 public class Tiles {
 
@@ -50,7 +51,7 @@ public class Tiles {
         return getPicCountByZoom();
     }*/
 
-    //获取所以层级的数量，当key为-1时代表所有层级总量
+    //获取所有层级的数量，当key为-1时代表所有层级总量
     public Map<Integer, Integer> countZoom(){
         Map<Integer, Integer> result = new HashMap<>(zoomList.size() + 1);
         result.put(-1, 0);
