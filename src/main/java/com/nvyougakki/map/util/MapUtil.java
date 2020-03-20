@@ -22,7 +22,7 @@ public class MapUtil {
 
     //百度地图图层url
 //    public final static String URL_PREFIX = "http://maponline0.bdimg.com/tile/?qt=vtile&styles=pl&scaler=1";
-    public final static String URL_PREFIX = "https://api.map.baidu.com/customimage/tile/?scaler=1";
+    public final static String URL_PREFIX = "http://api0.map.bdimg.com/customimage/tile/?scale=1";
 
     //今天日期
     public final static String TODAY = new SimpleDateFormat("YYYYMMdd").format(new Date());
@@ -54,8 +54,8 @@ public class MapUtil {
     }
 
     //下载图片
-    public static void downloadPicToLocal(PicAxis picAxis, String localPath, String style){
-        downloadPicToLocal(picAxis.getX(), picAxis.getY(), picAxis.getZ(), localPath, style, 0);
+    public static void downloadPicToLocal(PicAxis picAxis, String localPath, String styles){
+        downloadPicToLocal(picAxis.getX(), picAxis.getY(), picAxis.getZ(), localPath, styles, 0);
     }
 
     /**
@@ -65,13 +65,13 @@ public class MapUtil {
      * @Param [x, y, z, localPath, stackDeep]
      * @return void
      **/
-    public static void downloadPicToLocal(int x, int y, int z, String localPath ,String style, int stackDeep){
+    public static void downloadPicToLocal(int x, int y, int z, String localPath ,String styles, int stackDeep){
         if(stackDeep > 10) return;
         URL url = null;
         HttpURLConnection connection = null;
         InputStream ips = null;
         OutputStream ops = null;
-        String _url = URL_PREFIX + "&x=" + x + "&y=" + y + "&z=" + z + "&udt=" + TODAY + "&styles=" + style;
+        String _url = URL_PREFIX + "&x=" + x + "&y=" + y + "&z=" + z + "&udt=" + TODAY + "&styles=" + styles;
         try{
             File f = new File(localPath + z + "/" + x + "/" + y + PIC_SUFFIX);
 
@@ -92,8 +92,9 @@ public class MapUtil {
                 IOUtils.copy(ips, ops);
             }
         } catch (IOException e) {
-            System.out.println(_url);
-            downloadPicToLocal(x, y, z, localPath, style, stackDeep++);
+            //System.out.println(_url);
+//            Thread.sleep(2000);
+            downloadPicToLocal(x, y, z, localPath, styles, stackDeep++);
             e.printStackTrace();
         } finally {
             try {
@@ -139,13 +140,13 @@ public class MapUtil {
         minPoint = BDPointToMc.changeToMc(minPoint, 5, 6);
         maxPoint = BDPointToMc.changeToMc(maxPoint, 5, 6);
 
-        //需要抓取的图层
-//        List<Integer> zoomList = Arrays.asList(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17);
-        List<Integer> zoomList = Arrays.asList(7, 8, 9, 10);
+        //需要抓取的图层层级
+        List<Integer> zoomList = Arrays.asList(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17);
+//        List<Integer> zoomList = Arrays.asList(7, 8, 9, 10);
 
         Tiles tiles = new Tiles(minPoint, maxPoint, zoomList);
 
-        //获取个图层图块数量
+        //获取各图层图块数量
         Map<Integer, Integer> zoomCount = tiles.countZoom();
 
         //
@@ -156,12 +157,13 @@ public class MapUtil {
         AtomicInteger total = new AtomicInteger();
 
         long start = System.currentTimeMillis();
-        IntStream.rangeClosed(0,20).forEach(i -> {
+        String styles = "t%3Abackground%7Ce%3Aall%7Cc%3Atransparent%2Ct%3Awater%7Ce%3Aall%7Cc%3A%23044161%2Ct%3Aland%7Ce%3Aall%7Cc%3A%2301215c%2Ct%3Aboundary%7Ce%3Ag%7Cc%3A%23064f85%2Ct%3Arailway%7Ce%3Aall%7Cv%3Aoff%2Ct%3Ahighway%7Ce%3Ag%7Cc%3A%23004981%2Ct%3Ahighway%7Ce%3Ag.f%7Cc%3A%23005b96%7Cl%3A1%2Ct%3Ahighway%7Ce%3Al%7Cv%3Aon%2Ct%3Aarterial%7Ce%3Ag%7Cc%3A%23004981%7Cl%3A-39%2Ct%3Aarterial%7Ce%3Ag.f%7Cc%3A%2300508b%2Ct%3Apoi%7Ce%3Aall%7Cv%3Aoff%2Ct%3Agreen%7Ce%3Aall%7Cv%3Aoff%7Cc%3A%23056197%2Ct%3Asubway%7Ce%3Aall%7Cv%3Aoff%2Ct%3Amanmade%7Ce%3Aall%7Cv%3Aoff%2Ct%3Alocal%7Ce%3Aall%7Cv%3Aoff%2Ct%3Aarterial%7Ce%3Al%7Cv%3Aoff%2Ct%3Aboundary%7Ce%3Ag.f%7Cc%3A%23029fd4%2Ct%3Abuilding%7Ce%3Aall%7Cc%3A%231a5787%2Ct%3Alabel%7Ce%3Aall%7Cv%3Aoff%2Ct%3Apoi%7Ce%3Al.t.f%7Cc%3A%23ffffff%2Ct%3Apoi%7Ce%3Al.t.s%7Cc%3A%231e1c1c%2Ct%3Aadministrative%7Ce%3Al%7Cv%3Aon%2Ct%3Aroad%7Ce%3Al%7Cv%3Aoff";
+        IntStream.rangeClosed(0,30).forEach(i -> {
             Thread thread = new Thread(() -> {
 
                 PicAxis picAxis;
                 while ((picAxis = tilesMsg.getPicAxis()) != null) {
-                    downloadPicToLocal(picAxis, LOCAL_PATH, "t%3Abackground%7Ce%3Aall%7Cc%3Atransparent%2Ct%3Awater%7Ce%3Aall%7Cc%3A%23044161%2Ct%3Aland%7Ce%3Aall%7Cc%3A%2301215c%2Ct%3Aboundary%7Ce%3Ag%7Cc%3A%23064f85%2Ct%3Arailway%7Ce%3Aall%7Cv%3Aoff%2Ct%3Ahighway%7Ce%3Ag%7Cc%3A%23004981%2Ct%3Ahighway%7Ce%3Ag.f%7Cc%3A%23005b96%7Cl%3A1%2Ct%3Ahighway%7Ce%3Al%7Cv%3Aon%2Ct%3Aarterial%7Ce%3Ag%7Cc%3A%23004981%7Cl%3A-39%2Ct%3Aarterial%7Ce%3Ag.f%7Cc%3A%2300508b%2Ct%3Apoi%7Ce%3Aall%7Cv%3Aoff%2Ct%3Agreen%7Ce%3Aall%7Cv%3Aoff%7Cc%3A%23056197%2Ct%3Asubway%7Ce%3Aall%7Cv%3Aoff%2Ct%3Amanmade%7Ce%3Aall%7Cv%3Aoff%2Ct%3Alocal%7Ce%3Aall%7Cv%3Aoff%2Ct%3Aarterial%7Ce%3Al%7Cv%3Aoff%2Ct%3Aboundary%7Ce%3Ag.f%7Cc%3A%23029fd4%2Ct%3Abuilding%7Ce%3Aall%7Cc%3A%231a5787%2Ct%3Alabel%7Ce%3Aall%7Cv%3Aoff%2Ct%3Apoi%7Ce%3Al.t.f%7Cc%3A%23ffffff%2Ct%3Apoi%7Ce%3Al.t.s%7Cc%3A%231e1c1c%2Ct%3Aadministrative%7Ce%3Al%7Cv%3Aon%2Ct%3Aroad%7Ce%3Al%7Cv%3Aoff");
+                    downloadPicToLocal(picAxis, LOCAL_PATH, styles);
                     total.incrementAndGet();
                 }
 
