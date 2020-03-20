@@ -1,5 +1,7 @@
 package com.nvyougakki.map.bean;
 
+import com.nvyougakki.map.util.CoordinateTransform;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -20,7 +22,7 @@ public class Config {
 
     private String mapUrl;
 
-    private String today;  //今天年月茹
+    private String today;  //今天年月日
 
     private String fileRootPath;  //文件根目录
 
@@ -29,6 +31,10 @@ public class Config {
     private String mapStyle;  //地图样式
 
     private int[] zoomArr; //需要抓取的图层数组
+
+    private Point minPoint; //左下经纬度
+
+    private Point maxPoint;  //右上经纬度
 
     public Config(){
         Properties ps = new Properties();
@@ -44,6 +50,13 @@ public class Config {
             mapStyle = ps.getProperty("mapStyle");
             zoomArr = Arrays.asList(ps.getProperty("zoomArr").split(",")).stream().mapToInt(Integer::parseInt).toArray();
             today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String tmpPoint = ps.getProperty("minPoint");
+            String[] arr = tmpPoint.split(",");
+            minPoint = new Point(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]));
+            tmpPoint = ps.getProperty("minPoint");
+            arr = tmpPoint.split(",");
+            maxPoint = new Point(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]));
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -87,6 +100,20 @@ public class Config {
         System.out.println(config);
     }
 
+    public Point getMinPoint() {
+        return minPoint;
+    }
 
+    public Point getMaxPoint() {
+        return maxPoint;
+    }
 
+    //获取墨卡托坐标
+    public Point getMaxMcPoint(){
+        return CoordinateTransform.bd2mc(maxPoint);
+    }
+    //获取墨卡托坐标
+    public Point getMinMcPoint(){
+        return CoordinateTransform.bd2mc(minPoint);
+    }
 }

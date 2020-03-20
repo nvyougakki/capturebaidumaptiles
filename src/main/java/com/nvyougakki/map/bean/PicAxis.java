@@ -4,6 +4,7 @@ import com.nvyougakki.map.util.MapUtil;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
+import java.net.ConnectException;
 
 /**
  * @ClassName Point
@@ -81,7 +82,7 @@ public class PicAxis {
         return config.getFileRootPath() + z + "/" + x + "/" + y + config.getPicSuffix();
     }
 
-    public int startDownload(){
+    public void startDownload(){
         InputStream ips = null;
         FileOutputStream fos = null;
         try {
@@ -90,7 +91,6 @@ public class PicAxis {
             if(ips != null) {
                 IOUtils.copy(ips, fos);
             }
-            return 1;
         } catch (FileNotFoundException e) {
             File f = new File(getFilePath());
             f.getParentFile().mkdirs();
@@ -100,10 +100,10 @@ public class PicAxis {
                 ex.printStackTrace();
             }
             startDownload();
-            return 0;
-        } catch(IOException e) {
+        } catch (ConnectException e) {
+            startDownload();
+        } catch (IOException e) {
             e.printStackTrace();
-            return 0;
         } finally {
             try {
                 if(ips != null ) {

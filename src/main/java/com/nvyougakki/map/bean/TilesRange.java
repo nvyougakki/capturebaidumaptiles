@@ -90,6 +90,11 @@ public class TilesRange {
         return result;
     }
 
+    public Tile getCurrTile() {
+        return currTile;
+    }
 
-
+    public String currXYZ(){
+        return currZ + "," + currY + "," + currZ;
+    }
 }

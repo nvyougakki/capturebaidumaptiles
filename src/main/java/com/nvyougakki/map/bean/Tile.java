@@ -14,13 +14,13 @@ import java.io.IOException;
  */
 public class Tile {
 
-    private PicAxis minPicAxis;
+    private PicAxis minPicAxis;  //左下图块坐标
 
-    private PicAxis maxPicAxis;
+    private PicAxis maxPicAxis;  //右下图块坐标
 
-    private int z;
+    private int z; //地图层级
 
-    private int picCount;
+    private int picCount;  //当前图层屏幕图块数量
 
     private Config config;
 
@@ -73,6 +73,7 @@ public class Tile {
         return (maxPicAxis.getX() - minPicAxis.getX() + 1) * (maxPicAxis.getY() - minPicAxis.getY() + 1);
     }
 
+    //创建当前图层下的所有文件。文件创建格式为 z/x/y.png
     public void createFile() throws IOException {
         String rootPath = config.getFileRootPath();
         File f = new File(rootPath);

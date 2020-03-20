@@ -36,6 +36,7 @@ public class MapUtil {
         if(connection.getResponseCode() == 200) {
             ips = connection.getInputStream();
         }
+//        connection.disconnect();
         return ips;
 
     }

@@ -1,6 +1,7 @@
 package com.nvyougakki.map.util;
 
 import com.alibaba.fastjson.JSON;
+import com.nvyougakki.map.bean.Config;
 import com.nvyougakki.map.bean.PicAxis;
 import com.nvyougakki.map.bean.Point;
 import com.nvyougakki.map.bean.Tile;
@@ -32,6 +33,7 @@ public class CoordinateTransform {
      *
      * @param point
      * @param from
+     * 坐标转换方法
      * 1：GPS设备获取的角度坐标，WGS84坐标;
      * 2：GPS获取的米制坐标、sogou地图所用坐标;
      * 3：google地图、soso地图、aliyun地图、mapabc地图和amap地图所用坐标，国测局（GCJ02）坐标;
@@ -45,7 +47,7 @@ public class CoordinateTransform {
      * 6：bd09mc(百度米制经纬度坐标)
      * @return
      */
-    public static Point bd2Mc(Point point, int from, int to){
+    public static Point coorTransform(Point point, int from, int to){
         URL url = null;
         HttpURLConnection connection = null;
         try {
@@ -75,6 +77,15 @@ public class CoordinateTransform {
 
     }
 
+    //百度经纬度转化成墨卡托坐标
+    public static Point bd2mc(Point point){
+        return coorTransform(point, 5, 6);
+    }
+    //墨卡托坐标转图块坐标
+    public static PicAxis mc2PicAxis(Point point, int z) {
+        return mc2PicAxis(point.getX(), point.getY(), z);
+    }
+
     /**
      *墨卡托转图块坐标
      **/
@@ -85,24 +96,13 @@ public class CoordinateTransform {
         return result;
     }
 
-    //墨卡托坐标转图块坐标
-    public static PicAxis mc2PicAxis(Point point, int z) {
-        return mc2PicAxis(point.getX(), point.getY(), z);
-    }
-
-
-
-    public static void main(String[] args) {
-        Point point = new Point(114.21892734521,29.575429778924);
-//        Point result = changeToMc(point, 5, 6);
-//        System.out.println(result.getX() + "," + result.getY());
-    }
-
+    //墨卡托坐标矩形转化成图层类
     public static Tile mc2Tile(Point minPoint, Point maxPoint, int zoom){
         PicAxis picAxis = mc2PicAxis(minPoint, zoom);
         PicAxis picAxis1 = mc2PicAxis(maxPoint, zoom);
         return new Tile(picAxis, picAxis1, zoom);
     }
+
 
     public static List<Tile> mc2TileList(Point minPoint, Point maxPoint, List<Integer> zoomList){
         List<Tile> result = new ArrayList<>(zoomList.size());
@@ -110,6 +110,10 @@ public class CoordinateTransform {
             result.add(mc2Tile(minPoint, maxPoint, z));
         }
         return result;
+    }
+
+    public static List<Tile> mc2TileList(Config config){
+        return mc2TileList(config.getMinMcPoint(), config.getMaxMcPoint(), config.getZoomArr());
     }
 
     public static List<Tile> mc2TileList(Point minPoint, Point maxPoint, int[] zoomArr){
