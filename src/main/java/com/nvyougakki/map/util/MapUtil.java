@@ -72,7 +72,6 @@ public class MapUtil {
         InputStream ips = null;
         OutputStream ops = null;
         String _url = URL_PREFIX + "&x=" + x + "&y=" + y + "&z=" + z + "&udt=" + TODAY + "&styles=" + style;
-        System.out.println(_url);
         try{
             File f = new File(localPath + z + "/" + x + "/" + y + PIC_SUFFIX);
 
