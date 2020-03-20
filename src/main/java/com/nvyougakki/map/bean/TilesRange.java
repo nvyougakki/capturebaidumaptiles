@@ -1,5 +1,6 @@
 package com.nvyougakki.map.bean;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -11,11 +12,11 @@ import java.util.Map;
  */
 public class TilesRange {
 
-    private List<ZoomRange> zoomRangeList;
+    private List<Tile> tiles;
 
-    private ZoomRange currRange;
+    private Tile currTile;
 
-    private int zoomRangeIndex;
+    private int currIndex;
 
     private int currZ;
 
@@ -23,38 +24,57 @@ public class TilesRange {
 
     private int currY;
 
-    public TilesRange(List<ZoomRange> zoomRangeList) {
-        this.zoomRangeList = zoomRangeList;
-        this.zoomRangeIndex = 0;
-        this.currRange = zoomRangeList.get(zoomRangeIndex);
+    private int picCount;
+
+    private Config config;
+
+    public TilesRange(List<Tile> tiles, Config config) {
+        this.tiles = tiles;
+        this.currTile = tiles.get(currIndex);
+        this.config = config;
         resetZ();
         resetX();
         resetY();
     }
 
+    public int getPicCount(){
+        if(picCount == 0)
+            for(Tile tile : tiles) {
+                picCount += tile.getPicNum();
+            }
+        return picCount;
+    }
+
     private void resetX(){
-        currX = currRange.getMinPicAxis().getX();
+        currX = currTile.getMinPicAxis().getX();
     }
 
     private void resetY(){
-        currY = currRange.getMinPicAxis().getY();
+        currY = currTile.getMinPicAxis().getY();
     }
 
     private void resetZ() {
-        currZ = currRange.getZ();
+        currZ = currTile.getZ();
     }
 
     public synchronized PicAxis getPicAxis(){
-        PicAxis result = new PicAxis();
+        PicAxis result = new PicAxis(config);
         //判断y是否越界，越界则x+1
-        if(currY > currRange.getMaxPicAxis().getY()) {
+        if(currY > currTile.getMaxPicAxis().getY()) {
             currX++;
             //判断x是否越界，x越界则z+1
-            if(currX > currRange.getMaxPicAxis().getX()) {
-                zoomRangeIndex++;
-                if(zoomRangeIndex >= zoomRangeList.size()) return null;
+            if(currX > currTile.getMaxPicAxis().getX()) {
+                currIndex++;
+                //z越界则结束
+                if(currIndex >= tiles.size()) return null;
                 else {
-                    currRange = zoomRangeList.get(zoomRangeIndex);
+                    currTile = tiles.get(currIndex);
+                    currTile.setConfig(config);
+                    try {
+                        currTile.createFile();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     resetZ();
                     resetX();
                     resetY();
