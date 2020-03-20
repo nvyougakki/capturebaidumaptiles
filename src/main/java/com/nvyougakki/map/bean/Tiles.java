@@ -51,7 +51,7 @@ public class Tiles {
         return getPicCountByZoom();
     }*/
 
-    //获取所有层级的数量，当key为-1时代表所有层级总量
+    //获取所有层级的图片数量，当key为-1时代表所有层级总量
     public Map<Integer, Integer> countZoom(){
         Map<Integer, Integer> result = new HashMap<>(zoomList.size() + 1);
         result.put(-1, 0);

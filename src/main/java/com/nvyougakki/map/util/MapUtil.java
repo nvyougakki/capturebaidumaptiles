@@ -21,13 +21,14 @@ import java.util.stream.IntStream;
 public class MapUtil {
 
     //百度地图图层url
-    public final static String URL_PREFIX = "http://maponline0.bdimg.com/tile/?qt=vtile&styles=pl&scaler=1";
+//    public final static String URL_PREFIX = "http://maponline0.bdimg.com/tile/?qt=vtile&styles=pl&scaler=1";
+    public final static String URL_PREFIX = "https://api.map.baidu.com/customimage/tile/?scaler=1";
 
     //今天日期
     public final static String TODAY = new SimpleDateFormat("YYYYMMdd").format(new Date());
 
     //下载目录
-    private final static String LOCAL_PATH = "F:/tiles/";
+    private final static String LOCAL_PATH = "F:/tiles/blueTiles/";
 
     //文件后缀
     private final static String PIC_SUFFIX= ".png";
@@ -53,8 +54,8 @@ public class MapUtil {
     }
 
     //下载图片
-    public static void downloadPicToLocal(PicAxis picAxis, String localPath){
-        downloadPicToLocal(picAxis.getX(), picAxis.getY(), picAxis.getZ(), localPath, 0);
+    public static void downloadPicToLocal(PicAxis picAxis, String localPath, String style){
+        downloadPicToLocal(picAxis.getX(), picAxis.getY(), picAxis.getZ(), localPath, style, 0);
     }
 
     /**
@@ -64,13 +65,14 @@ public class MapUtil {
      * @Param [x, y, z, localPath, stackDeep]
      * @return void
      **/
-    public static void downloadPicToLocal(int x, int y, int z, String localPath, int stackDeep){
+    public static void downloadPicToLocal(int x, int y, int z, String localPath ,String style, int stackDeep){
         if(stackDeep > 10) return;
         URL url = null;
         HttpURLConnection connection = null;
         InputStream ips = null;
         OutputStream ops = null;
-        String _url = URL_PREFIX + "&x=" + x + "&y=" + y + "&z=" + z + "&udt=" + TODAY;
+        String _url = URL_PREFIX + "&x=" + x + "&y=" + y + "&z=" + z + "&udt=" + TODAY + "&styles=" + style;
+        System.out.println(_url);
         try{
             File f = new File(localPath + z + "/" + x + "/" + y + PIC_SUFFIX);
 
@@ -92,7 +94,7 @@ public class MapUtil {
             }
         } catch (IOException e) {
             System.out.println(_url);
-            downloadPicToLocal(x, y, z, localPath, stackDeep++);
+            downloadPicToLocal(x, y, z, localPath, style, stackDeep++);
             e.printStackTrace();
         } finally {
             try {
@@ -127,12 +129,20 @@ public class MapUtil {
 
     public static void main(String[] args) {
 
+        //百度坐标
+        Point minPoint = new Point(117.964112,27.010913);
+        Point maxPoint = new Point(122.986574, 31.289231);
+
         //墨卡托坐标--直接从百度地图api获取
-        Point minPoint = new Point(13207995.69, 3420821.13);
-        Point maxPoint = new Point(13397179.77, 3514005.1);
+//        Point minPoint = new Point(13207995.69, 3420821.13);
+//        Point maxPoint = new Point(13397179.77, 3514005.1);
+        //百度转墨卡托
+        minPoint = BDPointToMc.changeToMc(minPoint, 5, 6);
+        maxPoint = BDPointToMc.changeToMc(maxPoint, 5, 6);
 
         //需要抓取的图层
-        List<Integer> zoomList = Arrays.asList(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17);
+//        List<Integer> zoomList = Arrays.asList(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17);
+        List<Integer> zoomList = Arrays.asList(7, 8, 9, 10);
 
         Tiles tiles = new Tiles(minPoint, maxPoint, zoomList);
 
@@ -152,7 +162,7 @@ public class MapUtil {
 
                 PicAxis picAxis;
                 while ((picAxis = tilesMsg.getPicAxis()) != null) {
-                    downloadPicToLocal(picAxis, LOCAL_PATH);
+                    downloadPicToLocal(picAxis, LOCAL_PATH, "t%3Abackground%7Ce%3Aall%7Cc%3Atransparent%2Ct%3Awater%7Ce%3Aall%7Cc%3A%23044161%2Ct%3Aland%7Ce%3Aall%7Cc%3A%2301215c%2Ct%3Aboundary%7Ce%3Ag%7Cc%3A%23064f85%2Ct%3Arailway%7Ce%3Aall%7Cv%3Aoff%2Ct%3Ahighway%7Ce%3Ag%7Cc%3A%23004981%2Ct%3Ahighway%7Ce%3Ag.f%7Cc%3A%23005b96%7Cl%3A1%2Ct%3Ahighway%7Ce%3Al%7Cv%3Aon%2Ct%3Aarterial%7Ce%3Ag%7Cc%3A%23004981%7Cl%3A-39%2Ct%3Aarterial%7Ce%3Ag.f%7Cc%3A%2300508b%2Ct%3Apoi%7Ce%3Aall%7Cv%3Aoff%2Ct%3Agreen%7Ce%3Aall%7Cv%3Aoff%7Cc%3A%23056197%2Ct%3Asubway%7Ce%3Aall%7Cv%3Aoff%2Ct%3Amanmade%7Ce%3Aall%7Cv%3Aoff%2Ct%3Alocal%7Ce%3Aall%7Cv%3Aoff%2Ct%3Aarterial%7Ce%3Al%7Cv%3Aoff%2Ct%3Aboundary%7Ce%3Ag.f%7Cc%3A%23029fd4%2Ct%3Abuilding%7Ce%3Aall%7Cc%3A%231a5787%2Ct%3Alabel%7Ce%3Aall%7Cv%3Aoff%2Ct%3Apoi%7Ce%3Al.t.f%7Cc%3A%23ffffff%2Ct%3Apoi%7Ce%3Al.t.s%7Cc%3A%231e1c1c%2Ct%3Aadministrative%7Ce%3Al%7Cv%3Aon%2Ct%3Aroad%7Ce%3Al%7Cv%3Aoff");
                     total.incrementAndGet();
                 }
 
