@@ -34,13 +34,18 @@ public class Start {
 
 
         //获取配置文件
-        Config config = new Config();
 
         //百度坐标转墨卡托
 //        Point minPoint = CoordinateTransform.bd2Mc(config.getMinPoint(), 5, 6);
 //        Point maxPoint = CoordinateTransform.bd2Mc(config.getMaxPoint(), 5, 6);
 
+
+
+        Config config = new Config();
+        //获取不同图层
         List<Tile> tiles = CoordinateTransform.mc2TileList(config);
+
+        //加入所有图层
         TilesRange tilesRange = new TilesRange(tiles, config);
 
         //获取图块坐标总数

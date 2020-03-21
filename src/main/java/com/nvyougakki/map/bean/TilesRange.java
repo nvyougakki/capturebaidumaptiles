@@ -57,6 +57,7 @@ public class TilesRange {
         currZ = currTile.getZ();
     }
 
+    //获取当前下载图块
     public synchronized PicAxis getPicAxis(){
         PicAxis result = new PicAxis(config);
         //判断y是否越界，越界则x+1
@@ -83,7 +84,7 @@ public class TilesRange {
             } else {
                 resetY();
             }
-            //当图层大于18不一次性创建所有文件
+            //当图层大于18，改为创建z/x/*.png
             if(currZ >= 18) {
                 try {
                     currTile.createFileByX(currX);
