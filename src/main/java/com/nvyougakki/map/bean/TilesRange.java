@@ -69,18 +69,27 @@ public class TilesRange {
                 if(currIndex >= tiles.size()) return null;
                 else {
                     currTile = tiles.get(currIndex);
-                    currTile.setConfig(config);
-                    try {
-                        currTile.createFile();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    //当图层大于18不一次性创建所有文件
+                    if (currZ < 18)
+                        try {
+                            currTile.createFile();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     resetZ();
                     resetX();
                     resetY();
                 }
             } else {
                 resetY();
+            }
+            //当图层大于18不一次性创建所有文件
+            if(currZ >= 18) {
+                try {
+                    currTile.createFileByX(currX);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
         }
@@ -95,6 +104,6 @@ public class TilesRange {
     }
 
     public String currXYZ(){
-        return currZ + "," + currY + "," + currZ;
+        return currZ + "/" + currX + "/" + currY;
     }
 }

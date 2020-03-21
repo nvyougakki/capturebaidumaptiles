@@ -45,6 +45,7 @@ public class Start {
 
         //获取图块坐标总数
         int total = tilesRange.getPicCount();
+//        MapUtil mapUtil = new MapUtil();
 
         //当前下载量
         LongAdder hasDownload = new LongAdder();

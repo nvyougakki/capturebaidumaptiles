@@ -128,7 +128,7 @@ public class PicAxis {
         PicAxis picAxis = new PicAxis(1,0,3,config);
         System.out.println(picAxis.getFilePath());
         System.out.println(picAxis.getUrl());
-        picAxis.startDownload();
+//        picAxis.startDownload();
 
     }
 }

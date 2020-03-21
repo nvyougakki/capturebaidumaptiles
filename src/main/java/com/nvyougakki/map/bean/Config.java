@@ -2,10 +2,7 @@ package com.nvyougakki.map.bean;
 
 import com.nvyougakki.map.util.CoordinateTransform;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -53,10 +50,10 @@ public class Config {
             String tmpPoint = ps.getProperty("minPoint");
             String[] arr = tmpPoint.split(",");
             minPoint = new Point(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]));
-            tmpPoint = ps.getProperty("minPoint");
+            tmpPoint = ps.getProperty("maxPoint");
             arr = tmpPoint.split(",");
             maxPoint = new Point(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]));
-
+            createDir();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -115,5 +112,16 @@ public class Config {
     //获取墨卡托坐标
     public Point getMinMcPoint(){
         return CoordinateTransform.bd2mc(minPoint);
+    }
+
+    public void createDir(){
+        File f = new File(fileRootPath);
+        if(!f.exists()) {
+            f.mkdirs();
+        }
+        for(int z : zoomArr) {
+            f = new File(fileRootPath + z);
+            if(!f.exists()) f.mkdir();
+        }
     }
 }

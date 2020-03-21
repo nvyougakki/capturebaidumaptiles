@@ -113,13 +113,16 @@ public class CoordinateTransform {
     }
 
     public static List<Tile> mc2TileList(Config config){
-        return mc2TileList(config.getMinMcPoint(), config.getMaxMcPoint(), config.getZoomArr());
+        return mc2TileList(config.getMinMcPoint(), config.getMaxMcPoint(), config);
     }
 
-    public static List<Tile> mc2TileList(Point minPoint, Point maxPoint, int[] zoomArr){
+    public static List<Tile> mc2TileList(Point minPoint, Point maxPoint, Config config){
+        int[] zoomArr = config.getZoomArr();
         List<Tile> result = new ArrayList<>(zoomArr.length);
         for(int z : zoomArr) {
-            result.add(mc2Tile(minPoint, maxPoint, z));
+            Tile tile = mc2Tile(minPoint, maxPoint, z);
+            tile.setConfig(config);
+            result.add(tile);
         }
         return result;
     }

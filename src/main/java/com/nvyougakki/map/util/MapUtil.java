@@ -2,6 +2,13 @@ package com.nvyougakki.map.util;
 
 import com.nvyougakki.map.bean.*;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import sun.net.www.http.HttpClient;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -39,6 +46,30 @@ public class MapUtil {
 //        connection.disconnect();
         return ips;
 
+    }
+    private HttpClientBuilder clientbuilder = null;
+    public MapUtil(){
+
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager ();
+        connectionManager.setMaxTotal(100);
+        clientbuilder =
+                HttpClients.custom().setConnectionManager(connectionManager);
+    }
+
+    public InputStream getIpsByHttpClient(String url){
+
+        CloseableHttpClient client = clientbuilder.build();
+
+        HttpGet httpget = new HttpGet(url);
+        try {
+           return client.execute(httpget).getEntity().getContent();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+        }
+        return null;
     }
 
 

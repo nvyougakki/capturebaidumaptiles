@@ -24,6 +24,8 @@ public class Tile {
 
     private Config config;
 
+//    MapUtil mapUtil;
+
     public Tile() {
     }
 
@@ -31,6 +33,7 @@ public class Tile {
         this.minPicAxis = minPicAxis;
         this.maxPicAxis = maxPicAxis;
         this.z = z;
+//        mapUtil = new MapUtil();
     }
 
     public PicAxis getMinPicAxis() {
@@ -76,15 +79,9 @@ public class Tile {
     //创建当前图层下的所有文件。文件创建格式为 z/x/y.png
     public void createFile() throws IOException {
         String rootPath = config.getFileRootPath();
-        File f = new File(rootPath);
-        if(!f.exists()) {
-            f.mkdirs();
-        }
+        File f = null;
         rootPath += z;
-        f = new File(rootPath);
-        if(!f.exists()) {
-            f.mkdir();
-        }
+
         for(int x = minPicAxis.getX(); x <= maxPicAxis.getX(); x++) {
             String tmpPath = rootPath + "/" + x;
             f = new File(tmpPath);
@@ -96,5 +93,22 @@ public class Tile {
                 f.createNewFile();
             }
         }
+    }
+
+    public void createFileByX(int x) throws IOException {
+        String rootPath = config.getFileRootPath();
+        File f = null;
+        rootPath += z;
+//        for(int x = minPicAxis.getX(); x <= maxPicAxis.getX(); x++) {
+            String tmpPath = rootPath + "/" + x;
+            f = new File(tmpPath);
+            if(!f.exists()) {
+                f.mkdir();
+            }
+            for(int y = minPicAxis.getY(); y <= maxPicAxis.getY(); y++) {
+                f = new File(tmpPath + "/" + y + config.getPicSuffix());
+                f.createNewFile();
+            }
+//        }
     }
 }
