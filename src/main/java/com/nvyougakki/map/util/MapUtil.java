@@ -47,8 +47,8 @@ public class MapUtil {
         return ips;
 
     }
-    private HttpClientBuilder clientbuilder = null;
-    public MapUtil(){
+    private static HttpClientBuilder clientbuilder = null;
+    static {
 
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager ();
         connectionManager.setMaxTotal(100);
@@ -56,7 +56,7 @@ public class MapUtil {
                 HttpClients.custom().setConnectionManager(connectionManager);
     }
 
-    public InputStream getIpsByHttpClient(String url){
+    public static InputStream getIpsByHttpClient(String url){
 
         CloseableHttpClient client = clientbuilder.build();
 

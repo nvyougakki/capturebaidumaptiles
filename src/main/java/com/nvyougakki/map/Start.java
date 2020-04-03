@@ -54,9 +54,9 @@ public class Start {
 
         //当前下载量
         LongAdder hasDownload = new LongAdder();
-
+        MapUtil mapUtil = new MapUtil();
         //开始多线程下载
-        IntStream.rangeClosed(0,20).forEach(i -> {
+        IntStream.rangeClosed(0,15).forEach(i -> {
             Thread thread = new Thread(() -> {
                 PicAxis picAxis = tilesRange.getPicAxis();
                 while(picAxis != null) {

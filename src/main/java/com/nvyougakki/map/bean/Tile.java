@@ -90,7 +90,8 @@ public class Tile {
             }
             for(int y = minPicAxis.getY(); y <= maxPicAxis.getY(); y++) {
                 f = new File(tmpPath + "/" + y + config.getPicSuffix());
-                f.createNewFile();
+                if(f.length() == 0)
+                    f.createNewFile();
             }
         }
     }

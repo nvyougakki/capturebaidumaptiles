@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.stream.IntStream;
 
 /**
  * @ClassName Config
@@ -45,7 +46,12 @@ public class Config {
             fileRootPath = ps.getProperty("fileRootPath");
             picSuffix = ps.getProperty("picSuffix");
             mapStyle = ps.getProperty("mapStyle");
-            zoomArr = Arrays.asList(ps.getProperty("zoomArr").split(",")).stream().mapToInt(Integer::parseInt).toArray();
+            if("ALL".equals(ps.getProperty("zoomArr").toUpperCase())) {
+                zoomArr = IntStream.range(1, 19).toArray();
+            } else {
+                zoomArr = Arrays.asList(ps.getProperty("zoomArr").split(",")).stream().mapToInt(Integer::parseInt).toArray();
+            }
+
             today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String tmpPoint = ps.getProperty("minPoint");
             String[] arr = tmpPoint.split(",");

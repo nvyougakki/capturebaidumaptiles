@@ -86,11 +86,16 @@ public class PicAxis {
         InputStream ips = null;
         FileOutputStream fos = null;
         try {
-            ips = MapUtil.getPicIps(getUrl());
-            fos = new FileOutputStream(getFilePath());
-            if(ips != null) {
-                IOUtils.copy(ips, fos);
+            String filePath = getFilePath();
+            File f = new File(filePath);
+            if(f.length() == 0) {
+                ips = MapUtil.getPicIps(getUrl());
+                fos = new FileOutputStream(getFilePath());
+                if(ips != null) {
+                    IOUtils.copy(ips, fos);
+                }
             }
+
         } catch (FileNotFoundException e) {
             File f = new File(getFilePath());
             f.getParentFile().mkdirs();
