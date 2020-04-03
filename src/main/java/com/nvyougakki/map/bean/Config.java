@@ -34,6 +34,10 @@ public class Config {
 
     private Point maxPoint;  //右上经纬度
 
+    private String ak;
+
+    private String bd2mcUrl;
+
     public Config(){
         Properties ps = new Properties();
         InputStream ips = null;
@@ -44,6 +48,8 @@ public class Config {
             ps.load(ips);
             mapUrl = ps.getProperty("mapUrl");
             fileRootPath = ps.getProperty("fileRootPath");
+            ak = ps.getProperty("ak");
+            bd2mcUrl = ps.getProperty("bd2mcUrl");
             picSuffix = ps.getProperty("picSuffix");
             mapStyle = ps.getProperty("mapStyle");
             if("ALL".equals(ps.getProperty("zoomArr").toUpperCase())) {
@@ -113,11 +119,19 @@ public class Config {
 
     //获取墨卡托坐标
     public Point getMaxMcPoint(){
-        return CoordinateTransform.bd2mc(maxPoint);
+        return CoordinateTransform.bd2mc(this, maxPoint);
     }
     //获取墨卡托坐标
     public Point getMinMcPoint(){
-        return CoordinateTransform.bd2mc(minPoint);
+        return CoordinateTransform.bd2mc(this, minPoint);
+    }
+
+    public String getAk() {
+        return ak;
+    }
+
+    public String getBd2mcUrl() {
+        return bd2mcUrl;
     }
 
     public void createDir(){

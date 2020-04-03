@@ -25,10 +25,6 @@ import java.util.Map;
  */
 public class CoordinateTransform {
 
-    private final static String AK = "qi50bY3STQhYsDmISw8yP1EI8UUbppf6";
-
-    private final static String URL = "http://api.map.baidu.com/geoconv/v1/";
-
     /**
      *
      * @param point
@@ -47,11 +43,11 @@ public class CoordinateTransform {
      * 6：bd09mc(百度米制经纬度坐标)
      * @return
      */
-    public static Point coorTransform(Point point, int from, int to){
+    public static Point coorTransform(Config config, Point point, int from, int to){
         URL url = null;
         HttpURLConnection connection = null;
         try {
-            String httpUrl = URL + "?coords="+point.getX() + "," + point.getY() +"&from="+from+"&to="+to+"&ak=" + AK;
+            String httpUrl = config.getBd2mcUrl() + "?coords="+point.getX() + "," + point.getY() +"&from="+from+"&to="+to+"&ak=" + config.getAk();
             System.out.println(httpUrl);
             url = new URL(httpUrl);
             connection = (HttpURLConnection) url.openConnection();
@@ -78,8 +74,8 @@ public class CoordinateTransform {
     }
 
     //百度经纬度转化成墨卡托坐标
-    public static Point bd2mc(Point point){
-        return coorTransform(point, 5, 6);
+    public static Point bd2mc(Config config, Point point){
+        return coorTransform(config, point, 5, 6);
     }
     //墨卡托坐标转图块坐标
     public static PicAxis mc2PicAxis(Point point, int z) {
