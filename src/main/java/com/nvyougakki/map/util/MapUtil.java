@@ -1,6 +1,7 @@
 package com.nvyougakki.map.util;
 
 import com.nvyougakki.map.bean.*;
+import jdk.internal.util.xml.impl.Input;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
@@ -11,9 +12,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import sun.net.www.http.HttpClient;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -82,6 +81,7 @@ public class MapUtil {
         result.setZ(zoom);
         return result;
     }*/
+
 
 
 

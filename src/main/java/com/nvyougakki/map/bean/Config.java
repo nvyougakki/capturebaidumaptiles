@@ -3,6 +3,8 @@ package com.nvyougakki.map.bean;
 import com.nvyougakki.map.util.CoordinateTransform;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -104,9 +106,11 @@ public class Config {
         return zoomArr;
     }
 
-    public static void main(String[] args) {
-        Config config = new Config();
-        System.out.println(config);
+    public static void main(String[] args) throws URISyntaxException {
+//        Config config = new Config();
+        URI uri = Config.class.getClassLoader().getResource("downloadFail.txt").toURI();
+//        File f = new File(uri);
+//        new FileOutputStream(f);
     }
 
     public Point getMinPoint() {
@@ -144,4 +148,5 @@ public class Config {
             if(!f.exists()) f.mkdir();
         }
     }
+
 }
