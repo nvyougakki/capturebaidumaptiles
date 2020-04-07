@@ -3,13 +3,11 @@ package com.nvyougakki.map.bean;
 import com.nvyougakki.map.util.CoordinateTransform;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Properties;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 /**
@@ -40,6 +38,8 @@ public class Config {
 
     private String bd2mcUrl;
 
+    private PicAxis start;
+
     public Config(){
         Properties ps = new Properties();
         InputStream ips = null;
@@ -54,12 +54,32 @@ public class Config {
             bd2mcUrl = ps.getProperty("bd2mcUrl");
             picSuffix = ps.getProperty("picSuffix");
             mapStyle = ps.getProperty("mapStyle");
-            if("ALL".equals(ps.getProperty("zoomArr").toUpperCase())) {
+            String zoomStr = ps.getProperty("zoomArr");
+            if("ALL".equals(zoomStr.toUpperCase())) {
                 zoomArr = IntStream.range(1, 19).toArray();
+            } else if(zoomStr.indexOf("-") >= 0) {
+                String[] zoomPartStrArr = zoomStr.split(";");
+                Set<Integer> zoomSet = new HashSet<>();
+                for(String str : zoomPartStrArr) {
+                    String[] arr = str.split("-");
+                    IntStream.range(Integer.parseInt(arr[0]), Integer.parseInt(arr[1])).forEach(i -> zoomSet.add(i));
+                }
+                zoomArr = new int[zoomSet.size()];
+                AtomicInteger zoomIndex = new AtomicInteger();
+                zoomSet.stream().sorted(Integer::compareTo).forEach(i -> {
+                    zoomArr[zoomIndex.getAndIncrement()] = i;
+                });
             } else {
                 zoomArr = Arrays.asList(ps.getProperty("zoomArr").split(",")).stream().mapToInt(Integer::parseInt).toArray();
             }
-
+            String startPicStr = ps.getProperty("startPicAxis");
+            if(startPicStr != null) {
+                String[] arr = startPicStr.split("/");
+                start = new PicAxis();
+                start.setZ(Integer.parseInt(arr[0]));
+                start.setX(Integer.parseInt(arr[1]));
+                start.setY(Integer.parseInt(arr[2]));
+            }
             today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String tmpPoint = ps.getProperty("minPoint");
             String[] arr = tmpPoint.split(",");
@@ -106,11 +126,9 @@ public class Config {
         return zoomArr;
     }
 
-    public static void main(String[] args) throws URISyntaxException {
-//        Config config = new Config();
-        URI uri = Config.class.getClassLoader().getResource("downloadFail.txt").toURI();
-//        File f = new File(uri);
-//        new FileOutputStream(f);
+    public static void main(String[] args) {
+        Config config = new Config();
+        System.out.println(config);
     }
 
     public Point getMinPoint() {
@@ -138,6 +156,10 @@ public class Config {
         return bd2mcUrl;
     }
 
+    public PicAxis getStart() {
+        return start;
+    }
+
     public void createDir(){
         File f = new File(fileRootPath);
         if(!f.exists()) {
@@ -148,5 +170,4 @@ public class Config {
             if(!f.exists()) f.mkdir();
         }
     }
-
 }

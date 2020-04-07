@@ -32,6 +32,9 @@ public class ScanDownfailPng {
         } else {
             nowCount++;
             nowPath = f.getAbsolutePath();
+            if(nowPath.equals("F:\\tiles\\airport\\weixin\\9\\99\\55.png")){
+                System.out.println(f.length());
+            }
             if(f.length() == 0) {
                 count++;
                 System.err.println(f.getAbsolutePath());
@@ -65,7 +68,7 @@ public class ScanDownfailPng {
     }*/
 
     public static void main(String[] args) throws IOException, URISyntaxException, InterruptedException {
-        File f = new File("F:\\tiles\\blueTiles");
+        File f = new File("F:\\tiles\\airport\\weixin");
 //        File f = new File("F:\\tiles\\blueTiles\\3\\1\\0.png");
 //        System.out.println(f.length());
 //        f.delete()

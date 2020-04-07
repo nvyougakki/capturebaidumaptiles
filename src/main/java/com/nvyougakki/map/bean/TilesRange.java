@@ -30,17 +30,44 @@ public class TilesRange {
 
     public TilesRange(List<Tile> tiles, Config config) {
         this.tiles = tiles;
-        this.currTile = tiles.get(currIndex);
+        if(config.getStart() == null)
+            this.currTile = tiles.get(currIndex);
+        else
+            for(Tile tile : tiles) {
+                if(tile.getZ() == config.getStart().getZ()) {
+                    this.currTile = tile;
+                    break;
+                }
+                currIndex++;
+            }
         this.config = config;
         resetZ();
         resetX();
         resetY();
     }
 
-    public int getPicCount(){
+    public int getPicCount(PicAxis p){
+        if(p == null){
+            if(picCount == 0)
+                for(Tile tile : tiles) {
+                    picCount += tile.getPicNum();
+                }
+        }
+        else
+            getPicCountFrom(p);
+        return picCount;
+    }
+    public int getPicCountFrom(PicAxis picAxis){
+        int z = picAxis.getZ();
         if(picCount == 0)
             for(Tile tile : tiles) {
-                picCount += tile.getPicNum();
+                if(tile.getZ() > z)
+                    picCount += tile.getPicNum();
+                if(tile.getZ() == z) {
+                    PicAxis min = tile.getMinPicAxis();
+                    PicAxis max = tile.getMinPicAxis();
+                    picCount += Math.abs((picAxis.getX() - max.getX() + 1) * (picAxis.getY() - max.getY() + 1)) + 1;
+                }
             }
         return picCount;
     }

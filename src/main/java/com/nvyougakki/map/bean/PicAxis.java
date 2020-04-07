@@ -1,11 +1,11 @@
 package com.nvyougakki.map.bean;
 
-import com.nvyougakki.map.util.HttpClientUtils;
 import com.nvyougakki.map.util.MapUtil;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.net.ConnectException;
+import java.util.Optional;
 
 /**
  * @ClassName Point
@@ -76,7 +76,11 @@ public class PicAxis {
 
 
     public String getUrl(){
-        return config.getMapUrl() + "&x=" + x + "&y=" + y + "&z=" + z + "&udt=" + config.getToday() + "&styles=" + config.getMapStyle();
+        String result = config.getMapUrl().replace("x=?", "x=" + x).replace("y=?", "y=" + y).replace("z=?", "z=" + z) + "&udt=" + config.getToday();
+        if(null != config.getMapStyle() && !"".equals(config.getMapStyle())) {
+            result += "&styles=" + config.getMapStyle();
+        }
+        return result;
     }
 
     public String getFilePath(){
@@ -97,15 +101,6 @@ public class PicAxis {
                 }
             }
 
-/*=======
-            // ips = MapUtil.getPicIps(getUrl());
-
-            fos = new FileOutputStream(getFilePath());
-            HttpClientUtils.httpGet(getUrl(), fos);
-            *//*if(ips != null) {
-                IOUtils.copy(ips, fos);
-            }*//*
->>>>>>> Stashed changes*/
         } catch (FileNotFoundException e) {
             File f = new File(getFilePath());
             f.getParentFile().mkdirs();
@@ -114,13 +109,10 @@ public class PicAxis {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-            startDownload();
-        } /*catch (ConnectException e) {
-            e.printStackTrace();
-            startDownload();
+            //startDownload();
+        } catch (ConnectException e) {
+            //startDownload();
         } catch (IOException e) {
-            e.printStackTrace();
-        } */ catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {

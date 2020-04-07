@@ -49,7 +49,7 @@ public class Start {
         TilesRange tilesRange = new TilesRange(tiles, config);
 
         //获取图块坐标总数
-        int total = tilesRange.getPicCount();
+        int total = tilesRange.getPicCount(config.getStart());
 //        MapUtil mapUtil = new MapUtil();
 
         //当前下载量
