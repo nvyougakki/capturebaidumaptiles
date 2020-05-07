@@ -75,6 +75,9 @@ public class HttpClientUtils {
                     .setSocketTimeout(TIME_OUT).build();
             // 发送get请求
             HttpGet request = new HttpGet(url);
+            request.setHeader("Connection", "keep-alive");
+            request.setHeader("Accept", "image/webp,image/apng,image/*,*/*;q=0.8");
+            request.setHeader("Accept-Encoding", "gzip, deflate");
             request.setConfig(requestConfig);
             response = httpClient.execute(request);
             // 请求发送成功，并得到响应

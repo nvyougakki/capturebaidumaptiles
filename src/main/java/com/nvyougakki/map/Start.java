@@ -56,7 +56,7 @@ public class Start {
         LongAdder hasDownload = new LongAdder();
         MapUtil mapUtil = new MapUtil();
         //开始多线程下载
-        IntStream.rangeClosed(0,15).forEach(i -> {
+        IntStream.rangeClosed(0,20).forEach(i -> {
             Thread thread = new Thread(() -> {
                 PicAxis picAxis = tilesRange.getPicAxis();
                 while(picAxis != null) {

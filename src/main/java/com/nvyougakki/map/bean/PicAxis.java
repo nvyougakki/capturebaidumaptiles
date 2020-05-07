@@ -1,5 +1,6 @@
 package com.nvyougakki.map.bean;
 
+import com.nvyougakki.map.util.HttpClientUtils;
 import com.nvyougakki.map.util.MapUtil;
 import org.apache.commons.io.IOUtils;
 
@@ -94,11 +95,12 @@ public class PicAxis {
             String filePath = getFilePath();
             File f = new File(filePath);
             if(f.length() == 0) {
-                ips = MapUtil.getPicIps(getUrl());
+                //ips = MapUtil.getPicIps(getUrl());
                 fos = new FileOutputStream(getFilePath());
-                if(ips != null) {
+                HttpClientUtils.httpGet(getUrl(), fos);
+                /*if(ips != null) {
                     IOUtils.copy(ips, fos);
-                }
+                }*/
             }
 
         } catch (FileNotFoundException e) {
@@ -110,9 +112,9 @@ public class PicAxis {
                 ex.printStackTrace();
             }
             //startDownload();
-        } catch (ConnectException e) {
+        } /*catch (ConnectException e) {
             //startDownload();
-        } catch (IOException e) {
+        } */catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
