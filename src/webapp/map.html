@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=E4805d16520de693a3fe707cdc962045"></script>
+    <!--加载鼠标绘制工具-->
+    <script type="text/javascript" src="//api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js"></script>
+    <link rel="stylesheet" href="//api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css" />
+    <!--加载检索信息窗口-->
+    <script type="text/javascript" src="//api.map.baidu.com/library/SearchInfoWindow/1.4/src/SearchInfoWindow_min.js"></script>
+    <link rel="stylesheet" href="//api.map.baidu.com/library/SearchInfoWindow/1.4/src/SearchInfoWindow_min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <style type="text/css">
+        body, html, #app, #allmap{
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div id="allmap" style="overflow:hidden;zoom:1;position:relative;">
+        <div id="map" style="height:100%;-webkit-transition: all 0.5s ease-in-out;transition: all 0.5s ease-in-out;"></div>
+    </div>
+    <div style="position: absolute; z-index: 100; padding: 20px;top: 20px;width: 200px;">
+        <button class="btn btn-primary" type="button" @click="cleanAll">清除覆盖物</button>
+        <form>
+            <div class="form-group">
+                <label>图块地址</label>
+                <textarea type="text" v-model="params.url" style="width: 100%;height: 100px;" class="form-control" placeholder="图块地址"></textarea>
+            </div>
+            <div class="form-group checkbox">
+                <label>
+                    选择图层
+                </label>
+                    <div class="row">
+                        <div class="col-md-10" v-for="item in maxZoom" v-if="item >= minZoom" style="width: 40px;">
+                            <input  type="checkbox" v-model="params.selectZoom" :value="item" name="selectZoom" /> {{item}}
+                        </div>
+
+                    </div>
+
+
+            </div>
+            <div class="form-group">
+                <label>矩形坐标范围</label>
+
+            </div>
+
+        </form>
+    </div>
+   <!-- <textarea style="width: 400px; height: 200px" v-model="clientInput"></textarea>
+    <button type="button" @click="sendMsg">提交</button>
+
+    <h3>服务器输出：</h3>
+    <textarea style="width: 400px; height: 200px" v-model="serverResult"></textarea>
+    -->
+</div>
+<script src="vue.js"></script>
+<script type="text/javascript">
+    var map
+    var overlay
+    var vue = new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                maxZoom: 19,
+                minZoom: 3,
+                params: {
+                    url: '',
+                    selectZoom: []
+                },
+                serverResult: '',
+                clientInput: ''
+            }
+        },
+        methods: {
+            sendMsg(){
+                var that = this
+                var socket = that.socket
+                var msg = that.clientInput
+                if(msg) {
+                    socket.send(msg)
+                }
+                that.clientInput = ''
+            },
+            cleanAll(){
+                map.removeOverlay(overlay)
+            }
+        },
+        mounted(){
+            map = new BMap.Map('map');
+            var poi = new BMap.Point(116.307852,40.057031);
+            map.centerAndZoom(poi, 16);
+            map.enableScrollWheelZoom();
+
+            var overlaycomplete = function(e){
+                map.removeOverlay(overlay)
+                overlay = e.overlay
+            };
+            var styleOptions = {
+                strokeColor:"red",    //边线颜色。
+                fillColor:"red",      //填充颜色。当参数为空时，圆形将没有填充效果。
+                strokeWeight: 3,       //边线的宽度，以像素为单位。
+                strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
+                fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
+                strokeStyle: 'solid' //边线的样式，solid或dashed。
+            }
+            //实例化鼠标绘制工具
+            var drawingManager = new BMapLib.DrawingManager(map, {
+                isOpen: false, //是否开启绘制模式
+                enableDrawingTool: true, //是否显示工具栏
+                drawingToolOptions: {
+                    anchor: BMAP_ANCHOR_TOP_RIGHT, //位置
+                    offset: new BMap.Size(5, 5), //偏离值
+                },
+                // circleOptions: styleOptions, //圆的样式
+                // polylineOptions: styleOptions, //线的样式
+                // polygonOptions: styleOptions, //多边形的样式
+                rectangleOptions: styleOptions //矩形的样式
+            });
+            //添加鼠标绘制工具监听事件，用于获取绘制结果
+            drawingManager.addEventListener('overlaycomplete', overlaycomplete);
+
+           /* var that = this
+            var socket
+            if(window.WebSocket) {
+                socket = new WebSocket('ws://localhost:9999/ws')
+                that.socket = socket
+            } else {
+                alert('不支持websocket')
+            }
+            socket.onmessage = function (resp) {
+                that.serverResult = that.serverResult + "\n" + resp.data
+            }
+            socket.onopen = function () {
+                that.serverResult = '连接开启'
+            }
+            socket.onclose = function () {
+                that.serverResult = that.serverResult + '\n连接断开'
+            }*/
+        }
+    })
+
+</script>
+</body>
+</html>
