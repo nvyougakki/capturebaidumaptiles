@@ -34,18 +34,19 @@ public class Config {
 
     private Point maxPoint;  //右上经纬度
 
-    private String ak;
+    private String ak; //ak
 
-    private String bd2mcUrl;
+    private String bd2mcUrl; //百度经纬度转墨卡托的url
 
-    private PicAxis start;
+    private PicAxis start; //开始图块位置
 
-    private int ThreadNum;
+    private int ThreadNum; //开启线程数量
 
-    private String cmd;
+    private String cmd; //执行命令
 
-    private boolean run;
+    private boolean run; //是否运行
 
+    //初始化一些参数
     public void init(){
         Properties ps = new Properties();
         InputStream ips = null;
@@ -82,14 +83,14 @@ public class Config {
             } else {
                 zoomArr = Arrays.asList(ps.getProperty("zoomArr").split(",")).stream().mapToInt(Integer::parseInt).toArray();
             }*/
-            String startPicStr = ps.getProperty("startPicAxis");
+           /* String startPicStr = ps.getProperty("startPicAxis");
             if(startPicStr != null) {
                 String[] arr = startPicStr.split("/");
                 start = new PicAxis();
                 start.setZ(Integer.parseInt(arr[0]));
                 start.setX(Integer.parseInt(arr[1]));
                 start.setY(Integer.parseInt(arr[2]));
-            }
+            }*/
             //today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             //String tmpPoint = ps.getProperty("minPoint");
             //String[] arr = tmpPoint.split(",");

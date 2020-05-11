@@ -9,11 +9,13 @@ import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MapWebSocket extends WebSocketServer {
 
-    private static Config config = null;
+    private Map<String, Config> connConfigMap = new HashMap<>();
 
 
     public MapWebSocket(int port){
@@ -32,28 +34,34 @@ public class MapWebSocket extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        Config innerConfig = JSON.parseObject(message, Config.class);
-        if("stop".equals(innerConfig.getCmd())) {
-            config.setRun(false);
-            conn.close();
-        }
-        if("start".equals(innerConfig.getCmd())) {
-            config = innerConfig;
-            config.init();
-            Computed computed = new Computed();
-            new Thread(() -> {
-
-                try {
-                    while (config.isRun()) {
-                        conn.send(JSON.toJSONString(computed));
-                        Thread.sleep(1000);
+        String remoteAddress = conn.getRemoteSocketAddress().toString();
+        synchronized (connConfigMap) {
+            //Config config = connConfigMap.get(remoteAddress);
+            Config innerConfig = JSON.parseObject(message, Config.class);
+            String cmd = innerConfig.getCmd();
+            if("stop".equals(cmd)) {
+                connConfigMap.get(remoteAddress).setRun(false);
+                conn.close();
+            } else if("start".equals(cmd)) {
+                innerConfig.init();
+                connConfigMap.put(remoteAddress, innerConfig);
+                Computed computed = new Computed();
+                //定时返回下载进度
+                new Thread(() -> {
+                    try {
+                        while (innerConfig.isRun()) {
+                            conn.send(JSON.toJSONString(computed));
+                            Thread.sleep(1000);
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).start();
-            new Thread(new Start(config, computed, conn)).start();
+                }).start();
+                //下载线程开启
+                new Thread(new Start(innerConfig, computed, conn)).start();
+            }
         }
+
 
     }
 

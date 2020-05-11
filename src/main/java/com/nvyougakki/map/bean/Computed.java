@@ -4,10 +4,13 @@ import java.util.concurrent.atomic.LongAdder;
 
 public class Computed {
 
+    //当前下载总量
     private LongAdder hasDownload;
 
+    //需要下载的总量
     private int total;
 
+    //当前图层
     private PicAxis currPxis;
 
     public Computed() {
