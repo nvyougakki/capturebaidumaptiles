@@ -77,10 +77,10 @@ public class PicAxis {
 
 
     public String getUrl(){
-        String result = config.getMapUrl().replace("x=?", "x=" + x).replace("y=?", "y=" + y).replace("z=?", "z=" + z) + "&udt=" + config.getToday();
-        if(null != config.getMapStyle() && !"".equals(config.getMapStyle())) {
+        String result = config.getMapUrl().replace("x=?", "x=" + x).replace("y=?", "y=" + y).replace("z=?", "z=" + z);
+       /* if(null != config.getMapStyle() && !"".equals(config.getMapStyle())) {
             result += "&styles=" + config.getMapStyle();
-        }
+        }*/
         return result;
     }
 
@@ -93,11 +93,13 @@ public class PicAxis {
         FileOutputStream fos = null;
         try {
             String filePath = getFilePath();
+
             File f = new File(filePath);
             if(f.length() == 0) {
                 //ips = MapUtil.getPicIps(getUrl());
                 fos = new FileOutputStream(getFilePath());
-                HttpClientUtils.httpGet(getUrl(), fos);
+                //System.out.println(getUrl());
+                HttpClientUtils.httpGet(getUrl(), fos, 0);
                 /*if(ips != null) {
                     IOUtils.copy(ips, fos);
                 }*/

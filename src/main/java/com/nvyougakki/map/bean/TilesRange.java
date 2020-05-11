@@ -44,9 +44,33 @@ public class TilesRange {
         resetZ();
         resetX();
         resetY();
+        try{
+            if(currZ >= 18) {
+                currTile.createFile();
+            } else {
+                currTile.createFileByX(currX);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        initCount();
     }
 
-    public int getPicCount(PicAxis p){
+    public void initCount(){
+        for(Tile tile: tiles) {
+            picCount += tile.getPicCount();
+        }
+    }
+
+    public int getPicCount() {
+        return picCount;
+    }
+
+    public void setPicCount(int picCount) {
+        this.picCount = picCount;
+    }
+    /*public int getPicCount(PicAxis p){
         if(p == null){
             if(picCount == 0)
                 for(Tile tile : tiles) {
@@ -70,7 +94,7 @@ public class TilesRange {
                 }
             }
         return picCount;
-    }
+    }*/
 
     private void resetX(){
         currX = currTile.getMinPicAxis().getX();
@@ -87,6 +111,7 @@ public class TilesRange {
     //获取当前下载图块
     public synchronized PicAxis getPicAxis(){
         PicAxis result = new PicAxis(config);
+
         //判断y是否越界，越界则x+1
         if(currY > currTile.getMaxPicAxis().getY()) {
             currX++;

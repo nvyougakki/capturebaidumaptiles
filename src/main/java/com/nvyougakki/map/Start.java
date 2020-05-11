@@ -1,8 +1,10 @@
 package com.nvyougakki.map;
 
+import com.alibaba.fastjson.JSON;
 import com.nvyougakki.map.bean.*;
 import com.nvyougakki.map.util.CoordinateTransform;
 import com.nvyougakki.map.util.MapUtil;
+import org.java_websocket.WebSocket;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,9 +20,76 @@ import java.util.stream.IntStream;
  * @Author 女友Gakki
  * @Date 2020/3/20 19:46
  */
-public class Start {
+public class Start implements Runnable{
+
+    private Config config;
+
+    private Computed computed;
+
+    private WebSocket conn;
+
+    public Start(Config config, Computed computed, WebSocket conn) {
+        this.config = config;
+        this.computed = computed;
+        this.conn = conn;
+    }
+
+    @Override
+    public void run(){
+        List<Tile> tiles = CoordinateTransform.mc2TileList(config);
+
+        //加入所有图层
+        TilesRange tilesRange = new TilesRange(tiles, config);
+
+        //获取图块坐标总数
+        int total = tilesRange.getPicCount();
+        computed.setTotal(total);
+
+
+        MapUtil mapUtil = new MapUtil();
+        //开始多线程下载
+        IntStream.rangeClosed(0,config.getThreadNum()).forEach(i -> {
+            Thread thread = new Thread(() -> {
+                PicAxis picAxis = null;
+                while((picAxis = tilesRange.getPicAxis()) != null && config.isRun()) {
+                    picAxis.startDownload();
+                    computed.addDownloadOne();
+                }
+                config.setRun(false);
+                conn.send(JSON.toJSONString(computed));
+            }, "tile-thread-" + i);
+            thread.start();
+        });
+    }
+
+    public Config getConfig() {
+        return config;
+    }
+
+    public void setConfig(Config config) {
+        this.config = config;
+    }
+
+    public Computed getComputed() {
+        return computed;
+    }
+
+    public void setComputed(Computed computed) {
+        this.computed = computed;
+    }
+
+    public WebSocket getConn() {
+        return conn;
+    }
+
+    public void setConn(WebSocket conn) {
+        this.conn = conn;
+    }
 
     public static void main(String[] args) {
+        String url = "http://shangetu4.map.bdimg.com/it/u=x=12643;y=4731;z=16;v=009;type=sate&fm=46&udt=20200509";
+        Config config = new Config();
+        config.init();
         /*//中国矩形百度坐标
         Point minPoint = new Point(64.746589,3.989424);
         Point maxPoint = new Point(152.317722, 54.297495);*/
@@ -41,7 +110,7 @@ public class Start {
 
 
 
-        Config config = new Config();
+        /*Config config = new Config();
         //获取不同图层
         List<Tile> tiles = CoordinateTransform.mc2TileList(config);
 
@@ -58,11 +127,10 @@ public class Start {
         //开始多线程下载
         IntStream.rangeClosed(0,20).forEach(i -> {
             Thread thread = new Thread(() -> {
-                PicAxis picAxis = tilesRange.getPicAxis();
-                while(picAxis != null) {
+                PicAxis picAxis = null;
+                while((picAxis = tilesRange.getPicAxis()) != null) {
                     picAxis.startDownload();
                     hasDownload.add(1);
-                    picAxis = tilesRange.getPicAxis();
                 }
 
             }, "tile-thread-" + i);
@@ -92,7 +160,7 @@ public class Start {
                 e.printStackTrace();
             }
         }
-        System.out.println("下载完成");
+        System.out.println("下载完成");*/
        /* for(int i = 4;  i <= 16; i++) {
             PicAxis minPicAxis = mercatorToPicAxis(minPoint, i);
             PicAxis maxPicAxis = mercatorToPicAxis(maxPoint, i);

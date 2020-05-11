@@ -8,46 +8,162 @@
     <!--加载鼠标绘制工具-->
     <script type="text/javascript" src="//api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js"></script>
     <link rel="stylesheet" href="//api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css" />
+    <!--layer模块样式-->
+    <link rel="stylesheet" type="text/css" href="https://cdn.bootcdn.net/ajax/libs/layer/1.8.5/skin/layer.css" />
     <!--加载检索信息窗口-->
     <script type="text/javascript" src="//api.map.baidu.com/library/SearchInfoWindow/1.4/src/SearchInfoWindow_min.js"></script>
     <link rel="stylesheet" href="//api.map.baidu.com/library/SearchInfoWindow/1.4/src/SearchInfoWindow_min.css" />
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/layer/1.8.5/layer.min.js"></script>
     <style type="text/css">
         body, html, #app, #allmap{
             height: 100%;
+        }
+        .point-input{
+            width: 50px;
+            font-size: 12px;
+            border: none;
         }
     </style>
 </head>
 <body>
 <div id="app">
-
+    <!--<div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion"
+                       href="#collapseOne">
+                        点击我进行展开，再次点击我进行折叠。第 1 部分
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseOne" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    Nihil anim keffiyeh helvetica, craft beer labore wes anderson
+                    cred nesciunt sapiente ea proident. Ad vegan excepteur butcher
+                    vice lomo.
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion"
+                       href="#collapseTwo">
+                        点击我进行展开，再次点击我进行折叠。第 2 部分
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseTwo" class="panel-collapse collapse">
+                <div class="panel-body">
+                    Nihil anim keffiyeh helvetica, craft beer labore wes anderson
+                    cred nesciunt sapiente ea proident. Ad vegan excepteur butcher
+                    vice lomo.
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion"
+                       href="#collapseThree">
+                        点击我进行展开，再次点击我进行折叠。第 3 部分
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseThree" class="panel-collapse collapse">
+                <div class="panel-body">
+                    Nihil anim keffiyeh helvetica, craft beer labore wes anderson
+                    cred nesciunt sapiente ea proident. Ad vegan excepteur butcher
+                    vice lomo.
+                </div>
+            </div>
+        </div>
+    </div>-->
     <div id="allmap" style="overflow:hidden;zoom:1;position:relative;">
         <div id="map" style="height:100%;-webkit-transition: all 0.5s ease-in-out;transition: all 0.5s ease-in-out;"></div>
     </div>
-    <div style="position: absolute; z-index: 100; padding: 20px;top: 20px;width: 200px;">
+    <div style="position: absolute; z-index: 100; padding:20px;top: 0px;width: 250px; background: #fefefe;">
         <button class="btn btn-primary" type="button" @click="cleanAll">清除覆盖物</button>
         <form>
+            <!--<div class="form-group">
+                <label>连接状态：{{ connectStatus }}</label>
+            </div>-->
+            <div class="form-group">
+                <label>地图样式<a href="http://lbsyun.baidu.com/custom/list.htm" target="_blank">查看可设置值</a></label>
+                <input type="text" v-model.trim="simpleStyle" class="form-control"/>
+            </div>
+            <div class="form-group">
+                <label>线程数量</label>
+                <input type="text" v-model.trim="params.threadNum" class="form-control"/>
+            </div>
+            <div class="form-group">
+                <label>地图样式json<a href="http://wiki.lbsyun.baidu.com/custom/" target="_blank">设置JSON</a></label>
+                <textarea type="text" v-model.trim="styleJson" style="width: 100%;height: 100px;" class="form-control" placeholder="图块地址"></textarea>
+
+            </div>
             <div class="form-group">
                 <label>图块地址</label>
-                <textarea type="text" v-model="params.url" style="width: 100%;height: 100px;" class="form-control" placeholder="图块地址"></textarea>
+                <textarea type="text" v-model.trim="params.mapUrl" style="width: 100%;height: 100px;" class="form-control" placeholder="图块地址"></textarea>
             </div>
-            <div class="form-group checkbox">
+            <div class="form-group">
                 <label>
                     选择图层
                 </label>
-                    <div class="row">
-                        <div class="col-md-10" v-for="item in maxZoom" v-if="item >= minZoom" style="width: 40px;">
-                            <input  type="checkbox" v-model="params.selectZoom" :value="item" name="selectZoom" /> {{item}}
+                    <div class="row" style="margin-left: 0">
+                        <div class="col-md-10" v-for="item in maxZoom" v-if="item >= minZoom" style="width: 40px;padding: 0;">
+                            <input  type="checkbox" v-model="params.zoomArr" :value="item" name="selectZoom" /> {{item}}
                         </div>
 
                     </div>
-
-
             </div>
+           <!-- <div class="form-group">
+                <label>
+                    选择文件存储位置
+                </label>
+                <input type="text" placeholder="文件存储位置,默认在" @change="changDir"/>
+&lt;!&ndash;                <button type="button" class="btn btn-sm btn-primary" @click="browseFolder">选择文件图片存储位置</button>&ndash;&gt;
+            </div>-->
+
             <div class="form-group">
                 <label>矩形坐标范围</label>
+                <table class="table table-border">
+                    <thead>
+                    <tr>
+                        <th>类型</th>
+                        <th>经度</th>
+                        <th>纬度</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>最小点</td>
+                        <td><input class="point-input" v-model="params.minPoint.x" readonly="readonly"/></td>
+                        <td><input class="point-input" v-model="params.minPoint.y" readonly="readonly"/></td>
+                    </tr>
+                    <tr>
+                        <td>最大点</td>
+                        <td><input class="point-input" v-model="params.maxPoint.x" readonly="readonly"/></td>
+                        <td><input class="point-input" v-model="params.maxPoint.y" readonly="readonly"/></td>
+                    </tr>
 
+                    </tbody>
+                </table>
             </div>
+            <div>
+                <span>{{ process.finish }}/{{ process.total == -1 ? 0 : process.total }}({{process.finishPer}}%)&nbsp;&nbsp;&nbsp;{{process.speed}}张/s&nbsp;&nbsp;&nbsp;{{process.lastTime}}</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" :style="'width: ' + process.finishPer + '%'">
+                    <span class="sr-only">{{ process.finish }}/{{ process.total }}({{process.finishPer}}%)</span>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-primary" @click="initMap">渲染</button>
+            <button type="button" class="btn btn-sm btn-primary" @click="connect">开始({{ connectStatus }})</button>
+            <button type="button" class="btn btn-sm btn-primary" @click="shutdown">结束</button>
 
         </form>
     </div>
@@ -62,15 +178,31 @@
 <script type="text/javascript">
     var map
     var overlay
+    var socket
     var vue = new Vue({
         el: '#app',
         data: function () {
             return {
+                simpleStyle: '',
+                styleJson: '',
+                connectStatus: '未连接',
                 maxZoom: 19,
                 minZoom: 3,
+                process: {
+                    finish: 0,
+                    total: -1,
+                    speed: 0,
+                    lastTime: 0,
+                    finishPer: 0
+                },
                 params: {
-                    url: '',
-                    selectZoom: []
+                    cmd: '',
+                    mapUrl: '',
+                    threadNum: 10,
+                    zoomArr: [],
+                    fileRootPath: '',
+                    minPoint: {x: '', y: ''},
+                    maxPoint: {x: '', y: ''}
                 },
                 serverResult: '',
                 clientInput: ''
@@ -87,60 +219,162 @@
                 that.clientInput = ''
             },
             cleanAll(){
+                var that = this
+                that.params.minPoint.x = ''
+                that.params.minPoint.y = ''
+                that.params.maxPoint.x = ''
+                that.params.maxPoint.y = ''
                 map.removeOverlay(overlay)
+            },
+           /* changDir(dom){
+                var that = this
+                var filePath = dom.target.value.replace(/\\/g, '/')
+                filePath = filePath.substring(0,filePath.lastIndexOf('/'))
+                console.log(filePath)
+                that.params.fileRootPath = dom.target.value
+            },*/
+            refreshMap(){
+                var styleJson = this.styleJson
+                if(map) {
+                    map.setMapStyle(JSON.parse(styleJson));
+                }
+            },
+            connect(dom){
+                var that = this
+                var params = that.params
+                if(socket) {
+                    layer.msg('连接已存在')
+                    return
+                }
+                if(window.WebSocket) {
+                    socket = new WebSocket('ws://localhost:9999')
+                } else {
+                    alert('不支持websocket')
+                }
+
+                socket.onmessage = function (resp) {
+                    var lastProcess = that.process
+                    var lastFinish = lastProcess.finish
+                    var currProcess = JSON.parse(resp.data)
+                    var currDownload = currProcess.hasDownload.value * 1
+                    lastProcess.finish = currDownload
+                    var total = currProcess.total * 1
+                    lastProcess.total = total
+                    var speed = (currDownload - lastFinish)
+                    lastProcess.speed = speed
+                    lastProcess.finishPer = (currDownload/total * 100).toFixed('2')
+                    var lastSecond = ((total - currDownload)/speed).toFixed(0)
+                    lastProcess.lastTime = lastSecond + 's(' + (lastSecond/60).toFixed(1) + 'min)'
+                }
+
+                socket.onopen = function () {
+                    that.connectStatus = '连接开启'
+                    params.cmd = 'start'
+                    socket.send(JSON.stringify(params))
+                }
+
+                socket.onclose = function () {
+                    console.log('close')
+                    that.connectStatus = '未连接'
+                    socket = null
+                    var process = that.process
+                    process.finish = 0
+                    process.total = -1
+                    process.finishPer = 0
+                    process.speed = 0
+                    process.lastTime = 0
+                }
+            },
+
+
+            browseFolder() {
+                var that = this
+                try {
+                    var Message = "\u8bf7\u9009\u62e9\u6587\u4ef6\u5939"; //选择框提示信息
+                    var Shell = new ActiveXObject("Shell.Application");
+                    var Folder = Shell.BrowseForFolder(0, Message, 64, 17); //起始目录为：我的电脑
+                    //var Folder = Shell.BrowseForFolder(0, Message, 0); //起始目录为：桌面
+                    if (Folder != null) {
+                        Folder = Folder.items(); // 返回 FolderItems 对象
+                        Folder = Folder.item(); // 返回 Folderitem 对象
+                        Folder = Folder.Path; // 返回路径
+                        if (Folder.charAt(Folder.length - 1) != "\\") {
+                            Folder = Folder + "\\";
+                        }
+                        that.params.fileRootPath = Folder;
+                    }
+                }
+                catch (e) {
+                    alert(e.message);
+                }
+            },
+            shutdown(){
+                var params = this.params
+                params.cmd = 'stop'
+                socket.send(JSON.stringify(params))
+            },
+            initMap(){
+                var that = this
+                map = new BMap.Map('map')
+                map.addControl(new BMap.MapTypeControl());
+                var poi = new BMap.Point(116.307852,40.057031);
+                map.centerAndZoom(poi, 16);
+                map.enableScrollWheelZoom();
+                var styleJson = that.styleJson
+                if(styleJson) {
+                    map.setMapStyle({
+                        styleJson:JSON.parse(styleJson)
+                    });
+                }
+                var simpleStyle = that.simpleStyle
+                if(simpleStyle) {
+                    map.setMapStyle({
+                        style:simpleStyle
+                    });
+                }
+                var overlaycomplete = function(e){
+                    map.removeOverlay(overlay)
+                    overlay = e.overlay
+                    var pointArr = overlay.getPath()
+                    var max = pointArr[1]
+                    var min = pointArr[3]
+                    that.params.minPoint.x = min.lng
+                    that.params.minPoint.y = min.lat
+                    that.params.maxPoint.x = max.lng
+                    that.params.maxPoint.y = max.lat
+                };
+                var styleOptions = {
+                    strokeColor:"red",    //边线颜色。
+                    fillColor:"red",      //填充颜色。当参数为空时，圆形将没有填充效果。
+                    strokeWeight: 3,       //边线的宽度，以像素为单位。
+                    strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
+                    fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
+                    strokeStyle: 'solid' //边线的样式，solid或dashed。
+                }
+                //实例化鼠标绘制工具
+                var drawingManager = new BMapLib.DrawingManager(map, {
+                    isOpen: false, //是否开启绘制模式
+                    enableDrawingTool: true, //是否显示工具栏
+                    drawingToolOptions: {
+                        anchor: BMAP_ANCHOR_TOP_RIGHT, //位置
+                        offset: new BMap.Size(5, 5), //偏离值
+                    },
+                    // circleOptions: styleOptions, //圆的样式
+                    // polylineOptions: styleOptions, //线的样式
+                    // polygonOptions: styleOptions, //多边形的样式
+                    rectangleOptions: styleOptions //矩形的样式
+                });
+                //添加鼠标绘制工具监听事件，用于获取绘制结果
+                drawingManager.addEventListener('overlaycomplete', overlaycomplete);
             }
         },
         mounted(){
-            map = new BMap.Map('map');
-            var poi = new BMap.Point(116.307852,40.057031);
-            map.centerAndZoom(poi, 16);
-            map.enableScrollWheelZoom();
+            var that = this
+            that.initMap()
 
-            var overlaycomplete = function(e){
-                map.removeOverlay(overlay)
-                overlay = e.overlay
-            };
-            var styleOptions = {
-                strokeColor:"red",    //边线颜色。
-                fillColor:"red",      //填充颜色。当参数为空时，圆形将没有填充效果。
-                strokeWeight: 3,       //边线的宽度，以像素为单位。
-                strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
-                fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
-                strokeStyle: 'solid' //边线的样式，solid或dashed。
-            }
-            //实例化鼠标绘制工具
-            var drawingManager = new BMapLib.DrawingManager(map, {
-                isOpen: false, //是否开启绘制模式
-                enableDrawingTool: true, //是否显示工具栏
-                drawingToolOptions: {
-                    anchor: BMAP_ANCHOR_TOP_RIGHT, //位置
-                    offset: new BMap.Size(5, 5), //偏离值
-                },
-                // circleOptions: styleOptions, //圆的样式
-                // polylineOptions: styleOptions, //线的样式
-                // polygonOptions: styleOptions, //多边形的样式
-                rectangleOptions: styleOptions //矩形的样式
-            });
-            //添加鼠标绘制工具监听事件，用于获取绘制结果
-            drawingManager.addEventListener('overlaycomplete', overlaycomplete);
+            var that = this
 
-           /* var that = this
-            var socket
-            if(window.WebSocket) {
-                socket = new WebSocket('ws://localhost:9999/ws')
-                that.socket = socket
-            } else {
-                alert('不支持websocket')
-            }
-            socket.onmessage = function (resp) {
-                that.serverResult = that.serverResult + "\n" + resp.data
-            }
-            socket.onopen = function () {
-                that.serverResult = '连接开启'
-            }
-            socket.onclose = function () {
-                that.serverResult = that.serverResult + '\n连接断开'
-            }*/
+
         }
     })
 

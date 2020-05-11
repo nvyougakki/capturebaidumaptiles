@@ -63,7 +63,8 @@ public class HttpClientUtils {
      * @param url 路径
      * @return
      */
-    public static int httpGet(String url, OutputStream ops) {
+    public static int httpGet(String url, OutputStream ops, int stackDeep) {
+        if(stackDeep > 5) return 0;
         InputStream result = null;
         CloseableHttpClient httpClient = getHttpClient();
         // get请求返回结果
@@ -94,8 +95,9 @@ public class HttpClientUtils {
                // logger.error("get请求提交失败:" + url);
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("get请求提交失败:" + url);
+            System.err.println("get请求提交失败:" + url + "，重新请求");
+            httpGet(url, ops, stackDeep++);
+
             //logger.error("get请求提交失败:" + url, e);
         } finally {
             if( response != null){

@@ -1,18 +1,20 @@
 package com.nvyougakki.map;
 
+import com.alibaba.fastjson.JSON;
+import com.nvyougakki.map.bean.Computed;
+import com.nvyougakki.map.bean.Config;
 import org.java_websocket.WebSocket;
-import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 
 public class MapWebSocket extends WebSocketServer {
+
+    private static Config config = null;
+
 
     public MapWebSocket(int port){
         super(new InetSocketAddress(port));
@@ -30,8 +32,29 @@ public class MapWebSocket extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        System.out.println(conn.getRemoteSocketAddress());
-        conn.send("from server：" + LocalDateTime.now());
+        Config innerConfig = JSON.parseObject(message, Config.class);
+        if("stop".equals(innerConfig.getCmd())) {
+            config.setRun(false);
+            conn.close();
+        }
+        if("start".equals(innerConfig.getCmd())) {
+            config = innerConfig;
+            config.init();
+            Computed computed = new Computed();
+            new Thread(() -> {
+
+                try {
+                    while (config.isRun()) {
+                        conn.send(JSON.toJSONString(computed));
+                        Thread.sleep(1000);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+            new Thread(new Start(config, computed, conn)).start();
+        }
+
     }
 
     @Override
