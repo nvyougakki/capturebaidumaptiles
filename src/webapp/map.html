@@ -153,16 +153,16 @@
                 </table>
             </div>
             <div>
-                <span>{{ process.finish }}/{{ process.total == -1 ? 0 : process.total }}({{process.finishPer}}%)&nbsp;&nbsp;&nbsp;{{process.speed}}张/s&nbsp;&nbsp;&nbsp;{{process.lastTime}}</span>
+                <span>{{ process.finish }}/{{ process.total == -1 ? 0 : process.total }}({{process.finishRate}}%)&nbsp;&nbsp;&nbsp;{{process.speed}}张/s&nbsp;&nbsp;&nbsp;{{process.remainTime}}</span>
             </div>
             <div class="progress">
-                <div class="progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" :style="'width: ' + process.finishPer + '%'">
-                    <span class="sr-only">{{ process.finish }}/{{ process.total }}({{process.finishPer}}%)</span>
+                <div class="progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" :style="'width: ' + process.finishRate + '%'">
+                    <span class="sr-only">{{ process.finish }}/{{ process.total }}({{process.finishRate}}%)</span>
                 </div>
             </div>
 
             <button type="button" class="btn btn-sm btn-primary" @click="initMap">渲染</button>
-            <button type="button" class="btn btn-sm btn-primary" @click="connect">开始({{ connectStatus }})</button>
+            <button type="button" class="btn btn-sm btn-primary" @click="connect">{{btnstatusMap[btnstatus]}}</button>
             <button type="button" class="btn btn-sm btn-primary" @click="shutdown">结束</button>
 
         </form>
@@ -188,12 +188,20 @@
                 connectStatus: '未连接',
                 maxZoom: 19,
                 minZoom: 3,
+                btnstatus: 0,
+                btnstatusMap: {
+                    0: '连接服务',
+                    1: '已连接,点击下载',
+                    2: '下载中...',
+                    3: '下载完成,点击重新下载'
+                },
                 process: {
                     finish: 0,
                     total: -1,
                     speed: 0,
-                    lastTime: 0,
-                    finishPer: 0
+                    remainTime: 0,
+                    finishRate: 0,
+                    // lastTimeMile:
                 },
                 params: {
                     ak: 'E4805d16520de693a3fe707cdc962045',
@@ -226,6 +234,7 @@
                 that.params.maxPoint.x = ''
                 that.params.maxPoint.y = ''
                 map.removeOverlay(overlay)
+                overlay = null
             },
            /* changDir(dom){
                 var that = this
@@ -242,72 +251,111 @@
             },
             connect(dom){
                 var that = this
+                var btn = dom.target
+                var btnText = btn.innerHTML
+                btn.setAttribute("disabled", 'disabled')
                 var params = that.params
-                if(socket) {
-                    layer.msg('连接已存在')
-                    return
-                }
-                if(window.WebSocket) {
-                    socket = new WebSocket('ws://localhost:9999')
-                } else {
-                    alert('不支持websocket')
-                }
+                var btnstatus = that.btnstatus
+                if(btnstatus == 0) {
+                    if(socket) {
+                        layer.msg('连接已存在')
+                        return
+                    }
+                    if(window.WebSocket) {
+                        socket = new WebSocket('ws://localhost:9999')
+                    } else {
+                        alert('不支持websocket')
+                    }
 
-                socket.onmessage = function (resp) {
-                    var lastProcess = that.process
-                    var lastFinish = lastProcess.finish
-                    var currProcess = JSON.parse(resp.data)
-                    var currDownload = currProcess.hasDownload.value * 1
-                    lastProcess.finish = currDownload
-                    var total = currProcess.total * 1
-                    lastProcess.total = total
-                    var speed = (currDownload - lastFinish)
-                    lastProcess.speed = speed
-                    lastProcess.finishPer = (currDownload/total * 100).toFixed('2')
-                    var lastSecond = ((total - currDownload)/speed).toFixed(0)
-                    lastProcess.lastTime = lastSecond + 's(' + (lastSecond/60).toFixed(1) + 'min)'
-                }
+                    socket.onmessage = function (resp) {
+                        var process = that.process
+                        var resData = JSON.parse(resp.data)
+                        var finish = resData.finish
+                        process.total = resData.total
+                        process.finishRate = (resData.finishRate * 100).toFixed(1)
+                        var currDate = new Date().getTime()
+                        if(process.finish == -1) {
+                            process.speed = finish
+                        } else {
+                            process.speed = Math.floor((finish - process.finish)*1000/(currDate - process.lastTime))
+                        }
+                        process.finish = finish * 1
+                        var remainSecond = (process.total - process.finish)/process.speed
+                        process.lastTime = new Date().getTime()
+                        process.remainTime = remainSecond.toFixed(0) + "s  " + (remainSecond/60).toFixed(2) + "min"
 
-                socket.onopen = function () {
-                    that.connectStatus = '连接开启'
+                        if(finish == resData.total && finish != 0){
+                            var process = that.process
+                            process.finish = 0
+                            process.total = -1
+                            process.finishRate = 0
+                            process.speed = 0
+                            process.remainTime = ''
+                            that.btnstatus = 3
+                            btn.removeAttribute("disabled")
+                        }
+                        /*var lastProcess = that.process
+                        var lastFinish = lastProcess.finish
+
+                        var currDownload = currProcess.hasDownload.value * 1
+                        lastProcess.finish = currDownload
+                        var total = currProcess.total * 1
+                        lastProcess.total = total
+                        var speed = (currDownload - lastFinish)
+                        lastProcess.speed = speed
+                        lastProcess.finishPer = (currDownload/total * 100).toFixed('2')
+                        var lastSecond = ((total - currDownload)/speed).toFixed(0)
+                        lastProcess.lastTime = lastSecond + 's(' + (lastSecond/60).toFixed(1) + 'min)'*/
+
+                    }
+
+                    socket.onopen = function () {
+                        //that.connectStatus = '连接开启'
+                        that.btnstatus = 1
+                        btn.removeAttribute("disabled")
+                        /* params.cmd = 'start'
+                         socket.send(JSON.stringify(params))*/
+                    }
+
+                    socket.onclose = function () {
+                        console.log('close')
+                        btn.removeAttribute("disabled")
+                        that.btnstatus = 0
+                        socket = null
+                        var process = that.process
+                        process.finish = 0
+                        process.total = -1
+                        process.finishRate = 0
+                        process.speed = 0
+                        process.remainTime = ''
+                    }
+                } else if(1 == btnstatus || 3 == btnstatus) {
+                    btn.removeAttribute("disabled")
+                    if(!that.mapUrlIsTrue(params.mapUrl)){
+                        layer.msg('图块地址不合法')
+                        return
+                    }
+                    if(params.zoomArr.length == 0) {
+                        layer.msg('请选择层级')
+                        return
+                    }
+                    if(!overlay) {
+                        layer.msg('请圈出矩形区域')
+                        return
+                    }
+                    btn.setAttribute("disabled", 'disabled')
+                    that.btnstatus = 2
                     params.cmd = 'start'
                     socket.send(JSON.stringify(params))
                 }
 
-                socket.onclose = function () {
-                    console.log('close')
-                    that.connectStatus = '未连接'
-                    socket = null
-                    var process = that.process
-                    process.finish = 0
-                    process.total = -1
-                    process.finishPer = 0
-                    process.speed = 0
-                    process.lastTime = 0
-                }
+
+
             },
-
-
-            browseFolder() {
-                var that = this
-                try {
-                    var Message = "\u8bf7\u9009\u62e9\u6587\u4ef6\u5939"; //选择框提示信息
-                    var Shell = new ActiveXObject("Shell.Application");
-                    var Folder = Shell.BrowseForFolder(0, Message, 64, 17); //起始目录为：我的电脑
-                    //var Folder = Shell.BrowseForFolder(0, Message, 0); //起始目录为：桌面
-                    if (Folder != null) {
-                        Folder = Folder.items(); // 返回 FolderItems 对象
-                        Folder = Folder.item(); // 返回 Folderitem 对象
-                        Folder = Folder.Path; // 返回路径
-                        if (Folder.charAt(Folder.length - 1) != "\\") {
-                            Folder = Folder + "\\";
-                        }
-                        that.params.fileRootPath = Folder;
-                    }
-                }
-                catch (e) {
-                    alert(e.message);
-                }
+            mapUrlIsTrue(mapurl){
+                var patt = /^(http|https):\/\/\S+x=\d{1,20}\S+y=\d{1,20}\S+z=\d{1,20}/;
+                // x=\d{1,20}\S+y=\d{1,20}\S+z=\d{1,20}
+                return patt.test(mapurl)
             },
             shutdown(){
                 var params = this.params

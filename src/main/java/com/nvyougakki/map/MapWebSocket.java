@@ -50,8 +50,9 @@ public class MapWebSocket extends WebSocketServer {
                 new Thread(() -> {
                     try {
                         while (innerConfig.isRun()) {
-                            conn.send(JSON.toJSONString(computed));
                             Thread.sleep(1000);
+                            if(conn.isConnecting())
+                                conn.send(JSON.toJSONString(computed));
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();

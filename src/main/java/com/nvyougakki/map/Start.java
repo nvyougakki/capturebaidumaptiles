@@ -56,7 +56,8 @@ public class Start implements Runnable{
                     computed.addDownloadOne();
                 }
                 config.setRun(false);
-                conn.send(JSON.toJSONString(computed));
+                if(conn.isConnecting())
+                    conn.send(JSON.toJSONString(computed));
             }, "tile-thread-" + i);
             thread.start();
         });

@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.LongAdder;
 public class Computed {
 
     //当前下载总量
-    private LongAdder hasDownload;
+    private LongAdder finish;
 
     //需要下载的总量
     private int total;
@@ -14,15 +14,15 @@ public class Computed {
     private PicAxis currPxis;
 
     public Computed() {
-        this.hasDownload = new LongAdder();
+        this.finish = new LongAdder();
     }
 
-    public LongAdder getHasDownload() {
-        return hasDownload;
+    public long getFinish() {
+        return finish.longValue();
     }
 
     public void setHasDownload(LongAdder hasDownload) {
-        this.hasDownload = hasDownload;
+        this.finish = hasDownload;
     }
 
     public int getTotal() {
@@ -41,7 +41,12 @@ public class Computed {
         this.currPxis = currPxis;
     }
 
+    public double getFinishRate(){
+        if(total == 0) return 0;
+        return getFinish()*1.0/total;
+    }
+
     public void addDownloadOne(){
-        this.hasDownload.increment();
+        this.finish.increment();
     }
 }
