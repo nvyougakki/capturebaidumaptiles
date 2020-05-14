@@ -55,7 +55,7 @@ public class Config {
             url = this.getClass().getResource("/config.properties");
             ips = url.openStream();
             ps.load(ips);
-            fileRootPath = ps.getProperty("fileRootPath");
+//            fileRootPath = ps.getProperty("fileRootPath");
             ak = ps.getProperty("ak");
             bd2mcUrl = ps.getProperty("bd2mcUrl");
             picSuffix = ps.getProperty("picSuffix");

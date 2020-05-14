@@ -16,7 +16,7 @@ public class Tile {
 
     private PicAxis minPicAxis;  //左下图块坐标
 
-    private PicAxis maxPicAxis;  //右下图块坐标
+    private PicAxis maxPicAxis;  //右上图块坐标
 
     private int z; //地图层级
 

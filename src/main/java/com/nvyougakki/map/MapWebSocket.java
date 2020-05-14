@@ -3,6 +3,8 @@ package com.nvyougakki.map;
 import com.alibaba.fastjson.JSON;
 import com.nvyougakki.map.bean.Computed;
 import com.nvyougakki.map.bean.Config;
+import com.nvyougakki.map.bean.ResultBean;
+import com.nvyougakki.map.bean.ResultType;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -72,7 +74,4 @@ public class MapWebSocket extends WebSocketServer {
         conn.close();
     }
 
-    public static void main(String[] args) {
-        new MapWebSocket(9999).start();
-    }
 }

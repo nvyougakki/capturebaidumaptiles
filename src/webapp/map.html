@@ -88,9 +88,14 @@
     <div style="position: absolute; z-index: 100; padding:20px;top: 0px;width: 250px; background: #fefefe;">
         <button class="btn btn-primary" type="button" @click="cleanAll">清除覆盖物</button>
         <form>
-            <!--<div class="form-group">
-                <label>连接状态：{{ connectStatus }}</label>
-            </div>-->
+            <div class="form-group">
+                <label>端口</label>
+                <input type="text" v-model.trim="port" class="form-control"/>
+            </div>
+            <div class="form-group">
+                <label>下载路径</label>
+                <input type="text" v-model.trim="params.fileRootPath" class="form-control"/>
+            </div>
             <div class="form-group">
                 <label>地图样式<a href="http://lbsyun.baidu.com/custom/list.htm" target="_blank">查看可设置值</a></label>
                 <input type="text" v-model.trim="simpleStyle" class="form-control"/>
@@ -101,7 +106,7 @@
             </div>
             <div class="form-group">
                 <label>地图样式json<a href="http://wiki.lbsyun.baidu.com/custom/" target="_blank">设置JSON</a></label>
-                <textarea type="text" v-model.trim="styleJson" style="width: 100%;height: 100px;" class="form-control" placeholder="图块地址"></textarea>
+                <textarea type="text" v-model.trim="styleJson" style="width: 100%;height: 100px;" class="form-control" placeholder="地图样式json"></textarea>
 
             </div>
             <div class="form-group">
@@ -183,6 +188,7 @@
         el: '#app',
         data: function () {
             return {
+                port: '9999',
                 simpleStyle: '',
                 styleJson: '',
                 connectStatus: '未连接',
@@ -209,7 +215,7 @@
                     mapUrl: '',
                     threadNum: 10,
                     zoomArr: [],
-                    fileRootPath: '',
+                    fileRootPath: 'F:/tiles/test/',
                     minPoint: {x: '', y: ''},
                     maxPoint: {x: '', y: ''}
                 },
@@ -262,7 +268,7 @@
                         return
                     }
                     if(window.WebSocket) {
-                        socket = new WebSocket('ws://localhost:9999')
+                        socket = new WebSocket('ws://localhost:' + that.port)
                     } else {
                         alert('不支持websocket')
                     }
