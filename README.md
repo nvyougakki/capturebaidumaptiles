@@ -64,7 +64,7 @@
 
 前端为在src/main/webapp/map.html，打开页面设置端口一致，设置好参数
 
-![1589441114357](images\1589441114357.png)
+![1589441114357](https://raw.githubusercontent.com/nvyougakki/capturebaidumaptiles/master/images/1589441114357.png)
 
 红色为必填，其他可选
 
