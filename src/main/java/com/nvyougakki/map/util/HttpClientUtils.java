@@ -79,22 +79,34 @@ public class HttpClientUtils {
             request.setHeader("Connection", "keep-alive");
             request.setHeader("Accept", "image/webp,image/apng,image/*,*/*;q=0.8");
             request.setHeader("Accept-Encoding", "gzip, deflate");
+            request.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36 Edg/89.0.774.75\n" +
+                    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
             request.setConfig(requestConfig);
-            response = httpClient.execute(request);
-            // 请求发送成功，并得到响应
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                // 读取服务器返回过来的json字符串数据
-                //String strResult = EntityUtils.toString(response.getEntity());
-                // 把json字符串转换成json对象
-               //  jsonResult = JSONObject.parseObject(strResult);
-                // url = URLDecoder.decode(url, "UTF-8");
-                response.getEntity().writeTo(ops);
-                return 1;
-            } else {
-                System.err.println("get请求提交失败:" + url);
-               // logger.error("get请求提交失败:" + url);
+            int flag = 0;
+            while(flag < 5) {
+                response = httpClient.execute(request);
+                // 请求发送成功，并得到响应
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    // 读取服务器返回过来的json字符串数据
+                    //String strResult = EntityUtils.toString(response.getEntity());
+                    // 把json字符串转换成json对象
+                    //  jsonResult = JSONObject.parseObject(strResult);
+                    // url = URLDecoder.decode(url, "UTF-8");
+                    if(response.getEntity().getContent().available() > 0) {
+                        response.getEntity().writeTo(ops);
+                        return 1;
+                    }
+
+                } else {
+                    System.err.println("get请求提交失败:" + url);
+
+                    // logger.error("get请求提交失败:" + url);
+                }
+                Thread.sleep(3000);
+                flag++;
             }
-        } catch (IOException e) {
+
+        } catch (IOException | InterruptedException e) {
             System.err.println("get请求提交失败:" + url + "，重新请求");
             httpGet(url, ops, stackDeep++);
 

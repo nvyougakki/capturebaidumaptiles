@@ -1,18 +1,15 @@
 package com.nvyougakki.map;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.nvyougakki.map.bean.Computed;
 import com.nvyougakki.map.bean.Config;
-import com.nvyougakki.map.bean.ResultBean;
-import com.nvyougakki.map.bean.ResultType;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
-import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class MapWebSocket extends WebSocketServer {
@@ -39,12 +36,15 @@ public class MapWebSocket extends WebSocketServer {
         String remoteAddress = conn.getRemoteSocketAddress().toString();
         synchronized (connConfigMap) {
             //Config config = connConfigMap.get(remoteAddress);
-            Config innerConfig = JSON.parseObject(message, Config.class);
+            System.out.println(message);
+            Config innerConfig = JSONObject.parseObject(message, Config.class);
+            System.out.println(innerConfig.getAk());
             String cmd = innerConfig.getCmd();
             if("stop".equals(cmd)) {
                 connConfigMap.get(remoteAddress).setRun(false);
                 conn.close();
             } else if("start".equals(cmd)) {
+                System.out.println(innerConfig);
                 innerConfig.init();
                 connConfigMap.put(remoteAddress, innerConfig);
                 Computed computed = new Computed();
@@ -53,7 +53,7 @@ public class MapWebSocket extends WebSocketServer {
                     try {
                         while (innerConfig.isRun()) {
                             Thread.sleep(1000);
-                            if(conn.isConnecting())
+//                            if(conn.isConnecting())
                                 conn.send(JSON.toJSONString(computed));
                         }
                     } catch (InterruptedException e) {

@@ -100,6 +100,7 @@ public class PicAxis {
                 fos = new FileOutputStream(getFilePath());
                 //System.out.println(getUrl());
                 HttpClientUtils.httpGet(getUrl(), fos, 0);
+
                 /*if(ips != null) {
                     IOUtils.copy(ips, fos);
                 }*/

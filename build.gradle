@@ -1,10 +1,23 @@
 plugins {
     id 'java'
+    id 'application'
+    id 'idea'
 }
 
 group 'com,nvyougakki'
 version '1.0-SNAPSHOT'
 
+jar {
+    manifest {
+        attributes 'Implementation-Title' : 'DropBox-Backup-Service'
+        attributes 'Manifest-Version': '1.0.0'
+        attributes 'Main-Class': 'com.nvyougakki.map.Start'
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
 sourceCompatibility = 1.8
 
 repositories {

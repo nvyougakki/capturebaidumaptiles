@@ -88,7 +88,7 @@ public class Start implements Runnable{
     }
 
     public static void main(String[] args) {
-        new MapWebSocket(9999).start();
+        new MapWebSocket(9998).start();
     }
 
 }
