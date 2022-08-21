@@ -33,7 +33,15 @@ import java.util.logging.Logger;
 public class HttpClientUtils {
 //    private static Logger logger = new Logger();
     // 默认超时时间：10s
+
+
+
     private static final int TIME_OUT = 10 * 1000;
+
+    public static RequestConfig REQUEST_CONFIG = RequestConfig.custom()
+            .setConnectTimeout(TIME_OUT).setConnectionRequestTimeout(TIME_OUT)
+            .setSocketTimeout(TIME_OUT).build();
+
     private static PoolingHttpClientConnectionManager cm = null;
     static{
         LayeredConnectionSocketFactory sslsf = null;
@@ -53,11 +61,13 @@ public class HttpClientUtils {
         // 设置每个路由的基础连接数【默认，每个路由基础上的连接不超过2个，总连接数不能超过20】
         cm.setDefaultMaxPerRoute(20);
     }
-    private static CloseableHttpClient getHttpClient(){
+    public static CloseableHttpClient getHttpClient(){
         CloseableHttpClient httpClient = HttpClients.custom()
                 .setConnectionManager(cm).build();
         return httpClient;
     }
+
+
     /**
      * 发送get请求
      * @param url 路径
@@ -71,9 +81,7 @@ public class HttpClientUtils {
         CloseableHttpResponse response = null;
         try {
             // 配置请求超时时间
-            RequestConfig requestConfig = RequestConfig.custom()
-                    .setConnectTimeout(TIME_OUT).setConnectionRequestTimeout(TIME_OUT)
-                    .setSocketTimeout(TIME_OUT).build();
+
             // 发送get请求
             HttpGet request = new HttpGet(url);
             request.setHeader("Connection", "keep-alive");
@@ -81,7 +89,7 @@ public class HttpClientUtils {
             request.setHeader("Accept-Encoding", "gzip, deflate");
             request.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36 Edg/89.0.774.75\n" +
                     "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
-            request.setConfig(requestConfig);
+            request.setConfig(REQUEST_CONFIG);
             int flag = 0;
             while(flag < 5) {
                 response = httpClient.execute(request);
