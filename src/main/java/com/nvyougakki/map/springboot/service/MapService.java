@@ -3,20 +3,63 @@ package com.nvyougakki.map.springboot.service;
 import com.nvyougakki.map.springboot.bean.MapConfig;
 import com.nvyougakki.map.springboot.bean.PicAxis;
 import com.nvyougakki.map.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.stereotype.Service;
+import sun.nio.ch.ThreadPool;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.LongAdder;
 
+@Service
+@Slf4j
 public class MapService {
 
+
+    public static final ExecutorService executorService = Executors.newFixedThreadPool(5);;
+
+    public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+
+    public static MapConfig nowMapConfig = null;
+
+    public static boolean startMonitor = false;
+
+    static {
+        //监控进行中的线程数判断是否结束
+        singleThreadExecutor.submit(() -> {
+            while (true) {
+                try {
+                    if(startMonitor && executorService != null && nowMapConfig != null && nowMapConfig.isRunning()){
+                        if(((ThreadPoolExecutor)executorService).getActiveCount() <= 0) {
+                            nowMapConfig.setRunning(false);
+                            LongAdder hasDownload = nowMapConfig.getHasDownload();
+                            hasDownload.reset();
+                            hasDownload.add(nowMapConfig.getTotal());
+                            startMonitor = false;
+                        }
+                    }
+                    Thread.sleep(3_000);
+                } catch (Exception e) {
+
+                }
+
+            }
+
+        });
+    }
+
+    public static volatile boolean isRunning = false;
 
 
     public void getPic(MapConfig mapConfig) {
@@ -32,13 +75,23 @@ public class MapService {
 //            }
         }
 
-        List<Point> nextPoints = mapConfig.getPoints();
-        while (nextPoints.size() > 0) {
-            downloadPoints(mapConfig, nextPoints);
-            nextPoints = mapConfig.getPoints();
-            mapConfig.plusHasDownload(nextPoints.size());
-
+        ((ThreadPoolExecutor)executorService).setMaximumPoolSize(mapConfig.getThreadNum());
+        ((ThreadPoolExecutor)executorService).setCorePoolSize(mapConfig.getThreadNum());
+        mapConfig.setRunning(true);
+        for (int i = 0; i < mapConfig.getThreadNum(); i++) {
+            executorService.submit(() -> {
+                List<Point> nextPoints = mapConfig.getPoints();
+                while (nextPoints.size() > 0) {
+                    downloadPoints(mapConfig, nextPoints);
+                    nextPoints = mapConfig.getPoints();
+                    mapConfig.plusHasDownload(nextPoints.size());
+                }
+            });
         }
+        startMonitor = true;
+
+
+
     }
     private void downloadPoints(MapConfig mapConfig, List<Point> points){
         HttpGet request = new HttpGet("");
@@ -68,7 +121,7 @@ public class MapService {
             if(!file.getParentFile().exists()) file.getParentFile().mkdirs();
 
             String url = mapConfig.getUrl().replace("${x}", x + "").replace("${y}", y+"").replace("${z}", z+"");
-            System.out.println(url);
+            log.info(url);
             request.setURI(URI.create(url));
             HttpResponse response = httpClient.execute(request);
             ips =  response.getEntity().getContent();
@@ -78,6 +131,7 @@ public class MapService {
             }
             if(ips != null) ips.close();
         } catch (Exception e) {
+            e.printStackTrace();
             if(ips != null) {
                 try {
                     ips.close();

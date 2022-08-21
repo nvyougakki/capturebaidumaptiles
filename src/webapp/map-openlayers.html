@@ -21,38 +21,68 @@
         #app, body, html, #map{
         height: 100%; width: 100%;
         }
+        .el-form-item--mini .el-form-item__content, .el-form-item--mini .el-form-item__label{
+            line-height: 14px !important;
+        }
     </style>
 </head>
 <body>
 <div id="app">
     <div style="position: absolute; top: 10px; right: 10px; background: #ffffff; z-index: 999;">
+
         <el-popover
                 placement="bottom"
-                width="400"
+                width="600"
                 trigger="click"
                 content="这是一段内容,这是一段内容,这是一段内容,这是一段内容。">
             <el-button slot="reference">可选项</el-button>
-            <el-row>
-                区域：
-                <el-select size="mini" style="width: 100px" v-model="province" placeholder="省份" @change="changeProvince">
-                    <el-option v-for="item in provinces" :label="item.label" :value="item.value"></el-option>
-                </el-select>
+            <el-form size="mini" label-width="100px" :model="formData" ref="form" :rules="rules">
+                <el-form-item label="区域" required prop="province">
+                    <el-col :span="8">
+                        <el-select size="mini" v-model="formData.province" placeholder="省份" @change="changeProvince">
+                            <el-option v-for="item in provinces" :label="item.label" :value="item.value"></el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-select size="mini"v-model="city" placeholder="城市" @change="changeCity">
+                            <el-option v-for="item in cities" :label="item.label" :value="item.value"></el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-select size="mini" v-model="county" placeholder="区县" @change="changeCounty">
+                            <el-option v-for="item in counties" :label="item.label" :value="item.value"></el-option>
+                        </el-select>
+                    </el-col>
 
-                <el-select size="mini" style="width: 100px" v-model="city" placeholder="城市" @change="changeCity">
-                    <el-option v-for="item in cities" :label="item.label" :value="item.value"></el-option>
-                </el-select>
-                <el-select size="mini" style="width: 100px" v-model="county" placeholder="区县" @change="changeCounty">
-                    <el-option v-for="item in counties" :label="item.label" :value="item.value"></el-option>
-                </el-select>
-            </el-row>
-            <el-row>
-                <el-checkbox :indeterminate="zooms.length > 0 && zooms.length < zoomList.length" v-model="checkAll" @change="handleCheckAllChange"></el-checkbox>图层
-                <el-checkbox-group v-model="zooms" @change="(val) => checkAll = (val.length > 0 && val.length == zoomList.length)">
-                    <el-checkbox v-for="item in zoomList" :label="item" :key="item">{{item}}</el-checkbox>
-                </el-checkbox-group>
+                </el-form-item>
 
-            </el-row>
+                <el-form-item label="层级" prop="zoomList">
+                    <el-checkbox :indeterminate="formData.zoomList.length > 0 && formData.zoomList.length < zoomList.length" v-model="checkAll" @change="handleCheckAllChange"></el-checkbox>全选
+                    <el-checkbox-group v-model="formData.zoomList" @change="(val) => checkAll = (val.length > 0 && val.length == zoomList.length)">
+                        <el-checkbox v-for="item in zoomList" :label="item" :key="item">{{item}}</el-checkbox>
+                    </el-checkbox-group>
+                </el-form-item>
 
+                <el-form-item label="图块地址" prop="url">
+                    <el-input v-model="formData.url"/>
+                </el-form-item>
+
+                <el-form-item label="存放目录" prop="dir">
+                    <el-input v-model="formData.dir"/>
+                </el-form-item>
+
+                <el-form-item label="请求地址" prop="requestUrl">
+                    <el-input v-model="formData.requestUrl"/>
+                </el-form-item>
+
+                <el-form-item label="线程数" prop="threadNum">
+                    <el-input-number :step="1" :min="1" v-model="formData.threadNum"/>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitForm">提交</el-button>
+                </el-form-item>
+            </el-form>
+            <el-progress :text-inside="true" :format="() => hasDownload + '/' + total" :stroke-width="26" :percentage="downloadPer">）</el-progress>
         </el-popover>
 
 
@@ -75,10 +105,29 @@
             countyFeatures: [],
             counties: [],
             selectLayer: null,
-            zooms: [],
             zoomList: [],
             isIndeterminate: false,
-            checkAll: false
+            checkAll: false,
+            formData: {
+                url: 'https://maponline0.bdimg.com/tile/?qt=vtile&x=${x}&y=${y}&z=${z}&styles=pl&scaler=1&udt=20220819&from=jsapi3_0',
+                dir: "E:/tiles",
+                threadNum: 5,
+                zoomList: [],
+                province: '',
+                requestUrl: 'http://127.0.0.1:9123'
+            },
+            rules: {
+                province: [{required: true, message: '请选择区域', trigger: 'change'}],
+                zoomList: [{required: true, message: '请选择层级', trigger: 'change'}],
+                threadNum: [{required: true, message: '请填写线程数', trigger: 'blur'}],
+                dir: [{required: true, message: '请填写存放目录', trigger: 'blur'}],
+                url: [{required: true, message: '请填写图块地址，地址x、y、z的值分别用${x}、${y}、${z}表示', trigger: 'blur'}],
+                requestUrl: [{required: true, message: '后台请求路径', trigger: 'blur'}],
+            },
+            downloadPer: 0,
+            total: 0,
+            hasDownload: 0,
+            intervalOpen: false
         },
         watch: {
             selectGeoFeature(newVal) {
@@ -90,6 +139,22 @@
                 this.initMap()
                 this.initGeoJson()
                 this.initZoomList()
+                let that = this
+                setInterval(() => {
+                    // if(that.intervalOpen) {
+                        axios.get(that.formData.requestUrl + '/map/process').then(resp => {
+                            let data = resp.data
+                            if(data.code == 2000) {
+                                that.total = data.data.total
+                                that.hasDownload = data.data.hasDownload
+                                that.intervalOpen = data.data.isRunning
+                                that.downloadPer = that.total == 0 ? 0 : parseInt(that.hasDownload*100/that.total)
+                            } else {
+                                that.intervalOpen = false
+                            }
+                        })
+                    // }
+                }, 2000)
             },
             initZoomList() {
                 let arr = []
@@ -158,8 +223,29 @@
                 this.mapLayer = mapLayer
             },
             handleCheckAllChange(val) {
-                if(val) this.zooms = this.zoomList
-                else this.zooms = []
+                if(val) this.formData.zoomList = this.zoomList
+                else this.formData.zoomList = []
+            },
+            submitForm() {
+                let that = this
+                let params = this.formData
+                if(!this.selectGeoFeature) {
+                    return that.$message.error('请选择区域')
+                }
+                params.coordinates = this.selectGeoFeature.geometry.coordinates[0][0]
+                this.$refs.form.validate((valid) => {
+                    if(valid) {
+                        axios.post(`${params.requestUrl}/map/start`, params).then(resp => {
+                            let data = resp.data
+                            if(data.code == 2000) {
+                                that.intervalOpen = true
+                                that.$message.success(data.msg)
+                            } else {
+                                that.$message.error(data.msg)
+                            }
+                        })
+                    }
+                })
             }
         },
         mounted() {

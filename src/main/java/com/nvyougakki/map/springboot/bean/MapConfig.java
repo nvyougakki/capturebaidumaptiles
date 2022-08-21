@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.LongAdder;
 
 @Data
 public class MapConfig {
@@ -39,13 +40,15 @@ public class MapConfig {
     private double maxx = -10000;
     private double maxy = -10000;
 
-    private boolean isFinish = false;
+    private boolean isRunning = false;
 
     private int total;
 
-    private int hasDownload;
+    private LongAdder hasDownload = new LongAdder();
 
     private int zoomIndex;
+
+    private int threadNum = 5;
 
     List<PicAxis> picAxes = new ArrayList<>();
 
@@ -82,7 +85,7 @@ public class MapConfig {
     }
 
     public void plusHasDownload(int count) {
-        hasDownload+= count;
+        hasDownload.add(count);
     }
 
     private String dir;

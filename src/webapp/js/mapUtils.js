@@ -23,6 +23,7 @@ function initMap(center, target) {
         view: new ol.View({
             center: ol.proj.transform(center, 'EPSG:4326', 'BD:09'),
             projection: 'BD:09',
+            maxZoom: 20,
             zoom: 6
         }),
         target: target
