@@ -31,10 +31,17 @@ function initMap(center, target) {
 }
 
 function transformLocation(center) {
+    center = gps2Bd09(center)
     return ol.proj.transform(center, 'EPSG:4326', 'BD:09')
 }
 
-function addMapLayer(map) {
+function transformLocationToGps(point) {
+    point = ol.proj.transform(point, 'BD:09', 'EPSG:4326')
+    point = bd092Gps(point)
+    return point
+}
+
+function addMapLayer(map, url) {
 
 
     /*定义百度地图分辨率与瓦片网格*/
@@ -63,8 +70,9 @@ function addMapLayer(map) {
             var y = Math.abs(tileCoord[2]) - 1;
 
             // return `https://maponline0.bdimg.com/starpic/?qt=satepc&u=x=${x};y=${y};z=${z};v=009;type=sate&fm=46&udt=20220630`
-            // return `https://maponline0.bdimg.com/tile/?qt=vtile&x=${x}&y=${y}&z=${z}&styles=pl&scaler=1&udt=20220819&from=jsapi3_0`
-            return `http://localhost/offlineMap/${z}/${x}/${y}.png`
+            // return 'https://maponline0.bdimg.com/tile/?qt=vtile&x=${x}&y=${y}&z=${z}&styles=pl&scaler=1&udt=20220819&from=jsapi3_0'.replace('${x}',x).replace('${y}',y).replace('${z}',z)
+            return url.replace('${x}',x).replace('${y}',y).replace('${z}',z)
+            // return `http://localhost/offlineMap1/${z}/${x}/${y}.png`
         }
     });
     let layer = new ol.layer.Tile({
@@ -72,6 +80,36 @@ function addMapLayer(map) {
         source: source
     });
     return addLayer(map, layer)
+}
+
+function getMapTileImageSource(url) {
+
+    /*定义百度地图分辨率与瓦片网格*/
+    var resolutions = [];
+    for (var i = 0; i <= 18; i++) {
+        resolutions[i] = Math.pow(2, 18 - i);
+    }
+
+    var tilegrid = new ol.tilegrid.TileGrid({
+        origin: [0, 0],
+        resolutions: resolutions
+    });
+    new ol.source.TileImage({
+        projection: "BD:09",
+        tileGrid: tilegrid,
+        tileUrlFunction: function (tileCoord, pixelRatio, proj) {
+//openlayer5的版本
+
+            var z = tileCoord[0];
+            var x = tileCoord[1];
+            var y = Math.abs(tileCoord[2]) - 1;
+
+
+            return `https://maponline0.bdimg.com/starpic/?qt=satepc&u=x=${x};y=${y};z=${z};v=009;type=sate&fm=46&udt=20220630`
+            return url.replace('${x}',x).replace('${y}',y).replace('${z}',z)
+            // return `http://localhost/offlineMap1/${z}/${x}/${y}.png`
+        }
+    });
 }
 
 function addLayerBySource(map, id, source, styles) {
@@ -122,9 +160,21 @@ function getZoomByLevel(key){
     }[key] || 12
 }
 
+function gps2Bd09(arr) {
+    let res = wgs2bd(arr[1], arr[0])
+    return [res[1], res[0]]
+}
+
+function bd092Gps(arr) {
+    arr = bd2gcj(arr[1], arr[0])
+    arr = gcj2bd(arr[0], arr[1])
+    return [arr[1], arr[0]]
+}
+
 function addGeoLayer(map, geoJson) {
     geoJson = JSON.parse(JSON.stringify(geoJson))
     geoJson.geometry.coordinates[0][0] = geoJson.geometry.coordinates[0][0].map(o => transformLocation(o))
+
     mapAnimate(map, {
         zoom: getZoomByLevel(geoJson.properties.level),
         center: transformLocation(geoJson.properties.center)
@@ -165,4 +215,10 @@ function addGeoLayer(map, geoJson) {
         }),
     ];
     return addLayerBySource(map,'geo-layer', source, styles)
+}
+
+
+
+function addMapEvent(map, eventName, func) {
+    map.on(eventName, func)
 }

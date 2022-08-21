@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.LongAdder;
 @Data
 public class MapConfig {
 
-    private static final int[] SIZES = new int[]{500, 600, 700, 800, 900, 1000};
+    private static final int[] SIZES = new int[]{50, 80, 100, 90, 60, 80};
 
     //层级
     private List<Integer> zoomList;
@@ -57,7 +57,7 @@ public class MapConfig {
     public synchronized List<Point> getPoints() {
         int size = SIZES[getIndex%SIZES.length];
         List<Point> result = new ArrayList<>(size);
-        getIndex++;
+//        getIndex++;
         for(; zoomIndex < picAxes.size(); zoomIndex++) {
             PicAxis picAxis = picAxes.get(zoomIndex);
             Point point = picAxis.getPoint(); //图块坐标
@@ -93,7 +93,10 @@ public class MapConfig {
     public static void main(String[] args) throws IOException {
         String param = FileUtils.readFileToString(new File("E:\\workspace\\study\\capturebaidumaptiles\\param.txt"), "utf-8");
         MapConfig mapConfig = new Gson().fromJson(param, MapConfig.class);
-        new MapService().getPic(mapConfig);
+        MapService mapService = new MapService();
+        for (Integer integer : mapConfig.getZoomList()) {
+            mapService.getPicByZoom(mapConfig, integer);
+        }
        /* double minx = 10000;
         double miny = 10000;
         double maxx = -10000;

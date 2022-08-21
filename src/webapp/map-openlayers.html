@@ -5,17 +5,17 @@
     <title>地图爬取--openlayers版本</title>
 
     <!-- 引入样式 -->
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-    <script src="https://unpkg.com/vue@2"></script>
+    <link rel="stylesheet" href="./css/index.css">
+    <script src="./js/vue.js"></script>
     <!-- 引入组件库 -->
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="./js/index.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v7.0.0/legacy/ol.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@main/dist/en/v7.0.0/legacy/ol.css">
+    <script src="js/ol.js"></script>
+    <link rel="stylesheet" href="css/ol.css">
     <script src="./js/bd-09.js"></script>
     <script src="./js/locationUtils.js"></script>
     <script src="./js/mapUtils.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="js/axios.min.js"></script>
 
     <style type="text/css">
         #app, body, html, #map{
@@ -79,7 +79,9 @@
                     <el-input-number :step="1" :min="1" v-model="formData.threadNum"/>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="submitForm">提交</el-button>
+                    <el-button type="primary" :loading="isRunning" @click="submitForm">{{isRunning ? '下载中':'开始下载'}}</el-button>
+                    <el-button type="danger" @click="stop">停止</el-button>
+                    <el-button type="danger" @click="setMapUrl(formData.url)">重新渲染</el-button>
                 </el-form-item>
             </el-form>
             <el-progress :text-inside="true" :format="() => hasDownload + '/' + total" :stroke-width="26" :percentage="downloadPer">）</el-progress>
@@ -127,7 +129,7 @@
             downloadPer: 0,
             total: 0,
             hasDownload: 0,
-            intervalOpen: false
+            isRunning: true
         },
         watch: {
             selectGeoFeature(newVal) {
@@ -137,24 +139,39 @@
         methods: {
             init() {
                 this.initMap()
+                // this.setMapUrl(this.formData.url)
+                addMapEvent(this.map, 'singleclick', (e) => {
+                    console.log(e.coordinate)
+                    console.log(transformLocationToGps(e.coordinate))
+                })
+
+                // addMapLayer(this.map)
+                // this.setMapUrl(this.formData.url)
+                this.setMapUrl(this.formData.url)
+                // this.map.removeLayer(getLayerById(this.map, 'map-layer'))
+                // addMapLayer(this.map, this.formData.url)
                 this.initGeoJson()
                 this.initZoomList()
                 let that = this
                 setInterval(() => {
-                    // if(that.intervalOpen) {
+                    if(that.isRunning) {
                         axios.get(that.formData.requestUrl + '/map/process').then(resp => {
                             let data = resp.data
                             if(data.code == 2000) {
                                 that.total = data.data.total
                                 that.hasDownload = data.data.hasDownload
-                                that.intervalOpen = data.data.isRunning
+                                that.isRunning = data.data.isRunning
                                 that.downloadPer = that.total == 0 ? 0 : parseInt(that.hasDownload*100/that.total)
                             } else {
-                                that.intervalOpen = false
+                                that.isRunning = false
                             }
                         })
-                    // }
+                    }
                 }, 2000)
+            },
+            setMapUrl(url) {
+                this.map.removeLayer(getLayerById(this.map, 'map-layer'))
+                addMapLayer(this.map, this.formData.url)
             },
             initZoomList() {
                 let arr = []
@@ -218,9 +235,9 @@
             initMap() {
 
                 let map = initMap([119.807885, 30.735649], 'map')
-                let mapLayer = addMapLayer(map)
+                // let mapLayer = addMapLayer(map)
                 this.map = map
-                this.mapLayer = mapLayer
+                // this.mapLayer = mapLayer
             },
             handleCheckAllChange(val) {
                 if(val) this.formData.zoomList = this.zoomList
@@ -232,18 +249,34 @@
                 if(!this.selectGeoFeature) {
                     return that.$message.error('请选择区域')
                 }
+                this.isRunning = true
                 params.coordinates = this.selectGeoFeature.geometry.coordinates[0][0]
                 this.$refs.form.validate((valid) => {
                     if(valid) {
                         axios.post(`${params.requestUrl}/map/start`, params).then(resp => {
                             let data = resp.data
                             if(data.code == 2000) {
-                                that.intervalOpen = true
+                                that.isRunning = true
                                 that.$message.success(data.msg)
+                                return
                             } else {
                                 that.$message.error(data.msg)
                             }
+                            this.isRunning = false
                         })
+                    }
+                })
+            },
+            stop() {
+                let that = this
+                let params = this.formData
+                axios.get(`${params.requestUrl}/map/stop`).then(resp => {
+                    let data = resp.data
+                    if(data.code == 2000) {
+                        // that.intervalOpen = true
+                        that.$message.success(data.msg)
+                    } else {
+                        that.$message.error(data.msg)
                     }
                 })
             }

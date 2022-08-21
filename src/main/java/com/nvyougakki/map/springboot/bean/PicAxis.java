@@ -32,7 +32,7 @@ public class PicAxis {
 
 
     private synchronized void setCurrYRange() {
-        int yOffset = Math.max(0, z-16);
+        int yOffset = Math.max(0, z-15);
 
         if(currx == null) currx = (int) minPoint.getX();
         if(currx > maxPoint.getX()) {

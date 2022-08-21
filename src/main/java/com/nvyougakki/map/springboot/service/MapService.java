@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.LongAdder;
 public class MapService {
 
 
-    public static final ExecutorService executorService = Executors.newFixedThreadPool(5);;
+    public static ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     public static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 
@@ -40,7 +40,7 @@ public class MapService {
         singleThreadExecutor.submit(() -> {
             while (true) {
                 try {
-                    if(startMonitor && executorService != null && nowMapConfig != null && nowMapConfig.isRunning()){
+                    if(startMonitor && executorService != null && !executorService.isShutdown() && nowMapConfig != null && nowMapConfig.isRunning()){
                         if(((ThreadPoolExecutor)executorService).getActiveCount() <= 0) {
                             nowMapConfig.setRunning(false);
                             LongAdder hasDownload = nowMapConfig.getHasDownload();
@@ -63,6 +63,7 @@ public class MapService {
 
 
     public void getPic(MapConfig mapConfig) {
+        if(executorService.isShutdown()) executorService = Executors.newFixedThreadPool(mapConfig.getThreadNum());
         for (Integer zoom : mapConfig.getZoomList()) {
 //            try {
 //                getPicByZoom(mapConfig, zoom);
@@ -75,8 +76,8 @@ public class MapService {
 //            }
         }
 
-        ((ThreadPoolExecutor)executorService).setMaximumPoolSize(mapConfig.getThreadNum());
-        ((ThreadPoolExecutor)executorService).setCorePoolSize(mapConfig.getThreadNum());
+//        ((ThreadPoolExecutor)executorService).setMaximumPoolSize(mapConfig.getThreadNum());
+//        ((ThreadPoolExecutor)executorService).setCorePoolSize(mapConfig.getThreadNum());
         mapConfig.setRunning(true);
         for (int i = 0; i < mapConfig.getThreadNum(); i++) {
             executorService.submit(() -> {
@@ -84,7 +85,7 @@ public class MapService {
                 while (nextPoints.size() > 0) {
                     downloadPoints(mapConfig, nextPoints);
                     nextPoints = mapConfig.getPoints();
-                    mapConfig.plusHasDownload(nextPoints.size());
+//                    mapConfig.plusHasDownload(nextPoints.size());
                 }
             });
         }
@@ -102,9 +103,16 @@ public class MapService {
                 "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
         request.setConfig(HttpClientUtils.REQUEST_CONFIG);
         CloseableHttpClient httpClient = HttpClientUtils.getHttpClient();
+        int download = 0;
         for (Point point : points) {
             downloadPoint(mapConfig, point, request, httpClient);
+            download++;
+            if(download == 20) {
+                mapConfig.plusHasDownload(download);
+                download = 0;
+            }
         }
+        mapConfig.plusHasDownload(download);
 
     }
     private void downloadPoint(MapConfig mapConfig, Point point, HttpGet request, HttpClient httpClient) {
@@ -153,7 +161,7 @@ public class MapService {
         for (int i = 0; i < coordinates.length; i++) {
             Double[] coordinate = coordinates[i];
 
-            //第一个层级转换成百度经纬度
+            // 第一个层级转换成百度经纬度
             if(z == mapConfig.getZoomList().get(0)) {
                 Point tmpPoint = MapUtil.wgs84ToGcj02(coordinate[1], coordinate[0]);
                 Point point = MapUtil.gcj02ToBd09(tmpPoint.getY(), tmpPoint.getX());
@@ -263,6 +271,7 @@ public class MapService {
     public void downloadPic(MapConfig mapConfig, HttpGet request, HttpClient httpClient, int x, int y, int z) {
         InputStream ips = null;
         String url = mapConfig.getUrl().replace("${x}", x + "").replace("${y}", y+"").replace("${z}", z+"");
+        log.debug(url);
         try {
             File file = new File(mapConfig.getDir() + File.separator + z + File.separator + x + File.separator + y + ".png");
             if(!file.getParentFile().exists()) file.getParentFile().mkdirs();
@@ -270,6 +279,7 @@ public class MapService {
                 return;
             }
             request.setURI(URI.create(url));
+            log.info(url);
             HttpResponse response = httpClient.execute(request);
             ips =  response.getEntity().getContent();
             if(ips.available() > 0) {
@@ -278,6 +288,7 @@ public class MapService {
             }
             if(ips != null) ips.close();
         } catch (Exception e) {
+            e.printStackTrace();
             if(ips != null) {
                 try {
                     ips.close();

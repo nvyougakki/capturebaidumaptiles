@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/map")
@@ -46,5 +48,18 @@ public class MapController {
 
         return GlobalResult.success(result);
     }
+    @GetMapping("/stop")
+    public GlobalResult stop() throws InterruptedException {
+
+        if(MapService.nowMapConfig != null  && MapService.nowMapConfig.isRunning()) {
+//            MapService.executorService.shutdownNow();
+            MapService.executorService.shutdown();
+            MapService.executorService.awaitTermination(800, TimeUnit.MILLISECONDS);
+            MapService.nowMapConfig.setRunning(false);
+        }
+
+        return GlobalResult.success();
+    }
+
 
 }
