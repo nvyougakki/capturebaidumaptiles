@@ -15,7 +15,7 @@
 
 - **图块地址**
 
-  图块地址为百度图层的地址，对应x、y、z的值换成${x}、${y}、${z}（如源图层地址：https://maponline0.bdimg.com/tile/?qt=vtile&x=**3**&y=**1**&z=**0**&styles=pl&scaler=1&udt=20220819&from=jsapi3_0，修改为https://maponline0.bdimg.com/tile/?qt=vtile&x=${x}&y=${y}&z=${z}&styles=pl&scaler=1&udt=20220819&from=jsapi3_0到输入框，点击渲染可预览底图）
+  图块地址为百度图层的地址，对应x、y、z的值换成${x}、${y}、${z}（如源图层地址：`https://maponline0.bdimg.com/tile/?qt=vtile&x=3&y=1&z=0&styles=pl&scaler=1&udt=20220819&from=jsapi3_0`，修改为`https://maponline0.bdimg.com/tile/?qt=vtile&x=${x}&y=${y}&z=${z}&styles=pl&scaler=1&udt=20220819&from=jsapi3_0` 到输入框，点击渲染可预览底图）
 
 - **请求地址**
   后台项目启动的地址。
