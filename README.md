@@ -32,4 +32,4 @@
 
 
 
-![1661240179937](https://raw.githubusercontent.com/nvyougakki/capturebaidumaptiles/master/images/1661240179937.png)
+![1661240179937](https://gitee.com/nvyougakki/capturebaidumaptiles/raw/master/images/1661240179937.png)
